@@ -5,7 +5,7 @@ export default function Navbar() {
     <div className="navbar bg-base-100 shadow-sm">
       <div className="navbar-start">
         <div className="dropdown">
-          <div className="btn btn-ghost btn-circle ">
+          <div className="btn btn-ghost btn-circle mx-4 lg:hidden">
             <label htmlFor="my-drawer-3" className="btn drawer-button">
               <Menu />
             </label>

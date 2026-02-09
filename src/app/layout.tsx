@@ -23,7 +23,12 @@ export default function RootLayout({
           <div className="drawer-content flex h-[calc(100vh-4rem)] flex-col items-center justify-center bg-emerald-100">
             {children}
           </div>
-          <div className="drawer-side h-[calc(100vh-4rem)]">
+          <div className="drawer-side lg:h-[calc(100vh-4rem)]">
+            <label
+              htmlFor="my-drawer-3"
+              aria-label="close sidebar"
+              className="drawer-overlay"
+            ></label>
             <Sidebar />
           </div>
         </div>
