@@ -29,7 +29,8 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "src/app/api/ably-token"
+    "src/app/api/ably-token",
+    "src/app/api/answer-validation"
   ],
   "exclude": ["node_modules"]
 }
