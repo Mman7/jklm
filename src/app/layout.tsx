@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -19,18 +18,11 @@ export default function RootLayout({
       <body>
         <Navbar />
         <div className="drawer lg:drawer-open h-[calc(100vh-4rem)]">
-          <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
-          <div className="drawer-content flex h-[calc(100vh-4rem)] flex-col items-center justify-center bg-emerald-100">
+          <input id="my-drawer-3" type="checkbox"  className="drawer-toggle" />
+          <div className="drawer-content  h-[calc(100vh-4rem)]  bg-emerald-100">
             {children}
           </div>
-          <div className="drawer-side lg:h-[calc(100vh-4rem)]">
-            <label
-              htmlFor="my-drawer-3"
-              aria-label="close sidebar"
-              className="drawer-overlay"
-            ></label>
-            <Sidebar />
-          </div>
+         < Sidebar/>
         </div>
       </body>
     </html>
