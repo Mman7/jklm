@@ -27,7 +27,7 @@ export default function Navbar() {
         </div>
       </div>
       <div className="navbar-center ">
-        <a className="btn btn-ghost text-xl">daisyUI</a>
+        {/* content center */}
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">

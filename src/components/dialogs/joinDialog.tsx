@@ -5,15 +5,19 @@ import React, { useState } from "react";
 export default function JoinDialog({
   open,
   setOpen,
+  dialogCode,
+  setDialogCode,
+  callback,
 }: {
   open: boolean;
   setOpen: () => void;
+  dialogCode: string;
+  setDialogCode: (code: string) => void;
+  callback: Function;
 }) {
-  const [input, setInput] = useState("");
-
   const handleInput = (e: any) => {
     const data = e.target.value.toUpperCase();
-    setInput(data);
+    setDialogCode(data);
   };
 
   return (
@@ -23,15 +27,16 @@ export default function JoinDialog({
           <h3 className="mb-1 text-lg font-bold">Enter Code</h3>
           <input
             type="text"
-            value={input}
+            value={dialogCode}
             placeholder="Type here"
             className="input"
             maxLength={4}
             onChange={(e) => handleInput(e)}
           />
           <button
-            disabled={input.length !== 4}
+            disabled={dialogCode.length !== 4}
             className="btn btn-block btn-neutral my-4"
+            onClick={() => callback()}
           >
             Join
           </button>
