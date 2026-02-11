@@ -23,3 +23,14 @@ export const getRoomById = async (id: string) => {
   const result = (await client.json.get(`room-${id}`)) as Room | null;
   return result;
 };
+
+export const getAllRooms = async (): Promise<Room[]> => {
+  const keys = await client.keys("room-*");
+  const rooms = Object.fromEntries(
+    await Promise.all(
+      keys.map(async (key) => [key, await client.json.get(key)]),
+    ),
+  );
+
+  return Object.values(rooms);
+};
