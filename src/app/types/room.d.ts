@@ -1,6 +1,6 @@
 export interface Room {
   createdAt: Date;
-  hostName: string;
+  hostId: string;
   id: string;
   scores: {};
 }
