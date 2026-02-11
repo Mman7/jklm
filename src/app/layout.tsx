@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import NameDialog from "../components/dialogs/nameDialog";
+import Loading from "../components/Loading";
 
 export const metadata: Metadata = {
   title: "JKLM",
@@ -26,6 +27,7 @@ export default function RootLayout({
           <Sidebar />
         </div>
         <NameDialog />
+        <Loading />
       </body>
     </html>
   );
