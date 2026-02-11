@@ -1,6 +1,7 @@
-import Ably from "ably";
-import dotenv from 'dotenv'
-dotenv.config({ path: '.env' })
+import { createTokenRequest } from "@/src/app/api/ably-token/route";
+import Ably, { TokenParams, TokenRequest } from "ably";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env" });
 
 const ABLY_API_KEY = process.env.ABLY_API_KEY;
 
@@ -8,16 +9,14 @@ const ABLY_API_KEY = process.env.ABLY_API_KEY;
 const ably = new Ably.Rest({ key: ABLY_API_KEY });
 
 // Function to create a TokenRequest
-export async function createAblyTokenRequest(clientId:string) {
+export async function createAblyTokenRequest({ uuid }: createTokenRequest) {
   try {
-    const tokenRequest = await ably.auth.createTokenRequest({
-      clientId: clientId || 'some-unique-client-id', // Use a specific client ID if known
+    const tokenRequest: TokenRequest = await ably.auth.createTokenRequest({
+      clientId: uuid, // Use a specific client ID if known
       // Add other options like capabilities, timestamp, etc. if needed
     });
-    console.log("Token Request created:", tokenRequest);
     return tokenRequest;
   } catch (error) {
-    console.error("Error creating Ably Token Request:", error);
     throw error;
   }
 }
