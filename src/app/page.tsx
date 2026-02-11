@@ -1,32 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import JoinDialog from "../components/dialogs/joinDialog";
 import RoomList from "../components/RoomList";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { getRoom, hostRoom } from "../library/client/client";
 import useJoinDialog from "../hooks/useJoinDialog";
 import { Room } from "./types/room";
+import useUserValid from "../hooks/useUserValid";
+import useNameDialog from "../zustands/useNameDialogStore";
+import useAuth from "../zustands/useAuthStore";
+import useGame from "../zustands/useGameStore";
+import useLoadingDialog from "../zustands/useLoadingStore";
+import Dialog from "../components/dialogs/dialog";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function Home() {
   const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =
     useJoinDialog();
   const router = useRouter();
-  const handleHostRoom = () => {
-    hostRoom().then((room: Room) => router.push(`/${room.id}`));
+  const [showNotFound, setNotFound] = useState(false);
+  const { isUserValid } = useUserValid();
+  const { setShowDialog } = useNameDialog();
+  const { setShowLoading } = useLoadingDialog();
+  const { token } = useAuth();
+  const { uuid } = useGame();
+
+  useEffect(() => {
+    console.log(token);
+    console.log(uuid);
+  }, [token]);
+
+  const handleHostRoom = async () => {
+    if (!isUserValid) {
+      setShowDialog(true);
+      return;
+    }
+    if (!token) return;
+    setShowLoading(true);
+
+    await hostRoom({ token: token, uuid: uuid }).then((room: Room) =>
+      router.push(`/${room.id}`),
+    );
+    setShowLoading(false);
   };
 
-  const handleJoinRoom = () => {
-    getRoom(dialogCode)
+  const handleJoinRoom = async () => {
+    if (!isUserValid) {
+      setShowDialog(true);
+      return;
+    }
+    setShowLoading(true);
+
+    await getRoom(dialogCode)
       .then((roomData: Room) => {
         // room found, navigate to room
         router.push(`/${roomData.id}`);
       })
       .catch((err) => {
         // handle room not found
-        console.error(err);
+        setNotFound(true);
       });
+
+    setShowLoading(false);
   };
+
   return (
     <div className="flex h-full w-full flex-col gap-4 p-6 pb-0">
       <section className="bg-red flex h-full w-full gap-4">
@@ -47,7 +85,7 @@ export default function Home() {
             </button>
             <JoinDialog
               open={openJoinDialog}
-              setOpen={() => setOpenJoinDialog(false)}
+              setClose={() => setOpenJoinDialog(false)}
               setDialogCode={setDialogCode}
               dialogCode={dialogCode}
               callback={handleJoinRoom}
@@ -59,6 +97,19 @@ export default function Home() {
         </div>
       </section>
       <RoomList />
+      <Dialog
+        open={showNotFound}
+        className="w-xs"
+        onClose={() => setNotFound(false)}
+      >
+        <DotLottieReact
+          src="/lotties/not_found.lottie"
+          className="aspect-square"
+          loop
+          autoplay
+        />
+        <h1 className="text-center text-lg font-medium">Room not found</h1>
+      </Dialog>
     </div>
   );
 }
