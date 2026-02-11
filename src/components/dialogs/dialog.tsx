@@ -1,20 +1,23 @@
 "use client";
 
-import useNameDialog from "@/src/zustands/useNameDialogStore";
 import React from "react";
+
+interface DialogProps {
+  children: React.ReactNode;
+  open: boolean;
+  onClose: () => void;
+  className?: string;
+}
 
 export default function Dialog({
   children,
   open,
   onClose,
-}: {
-  children: React.ReactNode;
-  open: boolean;
-  onClose: () => void;
-}) {
+  className,
+}: DialogProps) {
   return (
     <dialog id="my_modal_2" open={open} className="modal">
-      <div className="modal-box">
+      <div className={`${className} modal-box`}>
         <form method="dialog">
           {/* if there is a button in form, it will close the modal */}
           <button
