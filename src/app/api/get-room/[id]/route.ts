@@ -7,6 +7,7 @@ export async function GET(
   request: NextRequest,
   context: { params: { id: string } },
 ) {
+  // this await is important, do not remove it
   const { id } = await context.params;
   const roomData: Room | null = await getRoomById(id);
   if (roomData === null) return new Response("Room not found", { status: 404 });
