@@ -20,3 +20,6 @@ export async function createAblyTokenRequest({ uuid }: createTokenRequest) {
     throw error;
   }
 }
+export function isTokenExpired(tokenDetails: any) {
+  return tokenDetails.expires < Date.now();
+}
