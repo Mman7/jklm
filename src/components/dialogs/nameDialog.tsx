@@ -4,30 +4,16 @@ import useGame from "@/src/zustands/useGameStore";
 import Dialog from "./dialog";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import { useEffect, useState } from "react";
-import useUserValid from "@/src/hooks/useUserValid";
-import {
-  generateNameWithUUID,
-  getUserToken,
-} from "@/src/library/client/client";
-import useAuth from "@/src/zustands/useAuthStore";
+import { generateNameWithUUID } from "@/src/library/client/client";
 
 export default function NameDialog() {
   const { setShowDialog, showDialog } = useNameDialog();
   const [inputValue, setInputValue] = useState<string>("");
-  const { isUserHasToken } = useUserValid();
-  const { name, setName, setUUID, uuid } = useGame();
-  const { setToken } = useAuth();
+  const { name, setName, setPlayerId } = useGame();
 
   const handleSubmit = () => {
     setName(inputValue);
-    setUUID(generateNameWithUUID(inputValue));
-    // Check if the user already has a token, if not, generate one
-    if (!isUserHasToken) {
-      getUserToken({ uuid }).then((res) => {
-        setToken(res);
-      });
-    }
-
+    setPlayerId(generateNameWithUUID(inputValue));
     setShowDialog(false);
   };
 
@@ -36,9 +22,7 @@ export default function NameDialog() {
   };
 
   useEffect(() => {
-    if (name !== "") {
-      setInputValue(name);
-    }
+    if (name !== "") setInputValue(name);
   }, [name]);
 
   return (
