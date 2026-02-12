@@ -1,10 +1,15 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
 import { CreateRoomRequest } from "@/src/app/api/create-room/route";
-import { Room } from "@/src/app/types/room";
+import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
 import { TokenRequest } from "ably";
 
-export const hostRoom = async (request: CreateRoomRequest): Promise<Room> => {
+export const hostRoom = async ({
+  playerId,
+}: {
+  playerId: string;
+}): Promise<Room> => {
+  const req: CreateRoomRequest = { playerId: playerId };
   return new Promise((resolve, reject) => {
     // try to create room
     fetch(`/api/create-room`, {
@@ -12,7 +17,7 @@ export const hostRoom = async (request: CreateRoomRequest): Promise<Room> => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(req),
     }).then((res) => {
       res.json().then((data: Room) => {
         if (res.status === 201) resolve(data);
@@ -27,13 +32,13 @@ export const generateNameWithUUID = (name: string): string => {
 };
 
 export const getUserToken = ({
-  uuid,
+  playerId,
 }: createTokenRequest): Promise<TokenRequest> => {
   return new Promise((resolve, reject) => {
     fetch("/api/ably-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(uuid),
+      body: JSON.stringify(playerId),
     }).then((res) => {
       if (res.status === 200) {
         res.json().then((data: TokenRequest) => {
@@ -52,6 +57,19 @@ export const getRoom = (roomId: string): Promise<Room> => {
       .then((res) => {
         if (res.status !== 200) reject(new Error("Room not found"));
         if (res.status === 200) res.json().then((data: Room) => resolve(data));
+      })
+      // network error
+      .catch((err) => reject(err));
+  });
+};
+
+export const getAllRooms = (): Promise<Room[]> => {
+  return new Promise((resolve, reject) => {
+    fetch("/api/getall-room")
+      .then((res) => res.json())
+      .then((data: []) => {
+        const newList = data.map((item) => JSON.parse(item));
+        resolve(newList);
       })
       // network error
       .catch((err) => reject(err));
