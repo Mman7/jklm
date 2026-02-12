@@ -4,17 +4,17 @@ import { persist } from "zustand/middleware";
 interface GameStore {
   name: string;
   setName: (name: string) => void;
-  uuid: string;
-  setUUID: (uuid: string) => void;
+  playerId: string;
+  setPlayerId: (uuid: string) => void;
 }
 
 const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
       name: "",
-      uuid: "",
+      playerId: "",
       setName: (name: string) => set({ name }),
-      setUUID: (uuid: string) => set({ uuid }),
+      setPlayerId: (uuid: string) => set({ playerId: uuid }),
     }),
     {
       name: "game-storage",
@@ -23,6 +23,6 @@ const useGameStore = create<GameStore>()(
 );
 
 export default function useGame() {
-  const { name, setName, uuid, setUUID } = useGameStore();
-  return { name, setName, uuid, setUUID };
+  const { name, setName, playerId, setPlayerId } = useGameStore();
+  return { name, setName, playerId, setPlayerId };
 }
