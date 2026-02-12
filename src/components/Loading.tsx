@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import useLoadingDialog from "../zustands/useLoadingStore";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
