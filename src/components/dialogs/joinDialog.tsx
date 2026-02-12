@@ -23,11 +23,11 @@ export default function JoinDialog({
   return (
     <Dialog open={open} onClose={() => setClose()}>
       <div>
-        <h3 className="mb-1 text-lg font-bold">Enter Code</h3>
+        <h3 className="mb-1 text-lg font-bold">Join Room</h3>
         <input
           type="text"
           value={dialogCode}
-          placeholder="Type here"
+          placeholder="Enter Code"
           className="input"
           maxLength={4}
           onChange={(e) => handleInput(e)}
