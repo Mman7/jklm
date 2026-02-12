@@ -1,15 +1,22 @@
-import React from "react";
+import { Player } from "@/src/types/player";
 
-export default function PlayerCard() {
+interface PlayerCardProps {
+  player: Player;
+  lastChat?: string;
+}
+
+export default function PlayerCard({ player }: PlayerCardProps) {
   return (
-    <div className="flex flex-row rounded-lg bg-white p-4 shadow-md">
-      <figure className="avatar flex-1 rounded-4xl">
-        <div className="rounded-full bg-blue-200">x</div>
-      </figure>
+    <div className="flex flex-row gap-1 rounded-lg bg-white p-3 shadow-md">
+      <div className="avatar flex-1">
+        <div className="size-20 rounded-full">
+          <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+        </div>
+      </div>
       <section className="flex-2">
-        <h2 className="text-xl font-bold">Player Name</h2>
-        <p className="text-gray-600">Score: 12345</p>
-        <p className="font-black text-gray-500">last chat</p>
+        <h2 className="text-lg font-bold">{player.name}</h2>
+        <p className="text-gray-600">{player.score}</p>
+        <p className="font-black text-gray-500">{player.lastChat}</p>
       </section>
     </div>
   );
