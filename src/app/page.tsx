@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import JoinDialog from "../components/dialogs/joinDialog";
 import RoomList from "../components/RoomList";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getRoom, hostRoom } from "../library/client/client";
 import useJoinDialog from "../hooks/useJoinDialog";
-import { Room } from "./types/room";
+import { Room } from "../types/room";
 import useUserValid from "../hooks/useUserValid";
 import useNameDialog from "../zustands/useNameDialogStore";
-import useAuth from "../zustands/useAuthStore";
 import useGame from "../zustands/useGameStore";
 import useLoadingDialog from "../zustands/useLoadingStore";
 import Dialog from "../components/dialogs/dialog";
@@ -23,23 +22,16 @@ export default function Home() {
   const { isUserValid } = useUserValid();
   const { setShowDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
-  const { token } = useAuth();
-  const { uuid } = useGame();
-
-  useEffect(() => {
-    console.log(token);
-    console.log(uuid);
-  }, [token]);
+  const { playerId } = useGame();
 
   const handleHostRoom = async () => {
     if (!isUserValid) {
       setShowDialog(true);
       return;
     }
-    if (!token) return;
     setShowLoading(true);
 
-    await hostRoom({ token: token, uuid: uuid }).then((room: Room) =>
+    await hostRoom({ playerId }).then((room: Room) =>
       router.push(`/${room.id}`),
     );
     setShowLoading(false);
@@ -57,7 +49,7 @@ export default function Home() {
         // room found, navigate to room
         router.push(`/${roomData.id}`);
       })
-      .catch((err) => {
+      .catch(() => {
         // handle room not found
         setNotFound(true);
       });
