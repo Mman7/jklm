@@ -1,29 +1,22 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import useGame from "../zustands/useGameStore";
-import useAuth from "../zustands/useAuthStore";
 
 export default function useUserValid() {
-  const { name } = useGame();
-  const { token } = useAuth();
+  const { name, playerId } = useGame();
   const [isUserHasName, setIsUserHasName] = useState(false);
-  const [isUserHasToken, setIsUserHasToken] = useState(false);
+  const [isUserHasId, setIsUserHasId] = useState(false);
 
-  const checkUserHasName = () => {
-    return name !== "" && name !== null;
-  };
-
-  const checkUserHasToken = () => {
-    return token !== null;
-  };
+  const checkUserHasName = () => name !== "" && name !== null;
+  const checkUserHasId = () => playerId !== "" && playerId !== null;
 
   useEffect(() => {
     setIsUserHasName(checkUserHasName());
-    setIsUserHasToken(checkUserHasToken());
-  }, [name, token]);
+    setIsUserHasId(checkUserHasId());
+  }, [name]);
 
   return {
-    isUserValid: isUserHasName && isUserHasToken,
+    isUserValid: isUserHasName && playerId,
     isUserHasName,
-    isUserHasToken,
+    isUserHasId,
   };
 }
