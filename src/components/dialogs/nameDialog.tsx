@@ -34,7 +34,7 @@ export default function NameDialog() {
           value={inputValue}
           placeholder="Type here"
           className="input"
-          maxLength={4}
+          maxLength={12}
           onChange={(e) => setInputValue(e.target.value)}
         />
         <button
