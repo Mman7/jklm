@@ -56,7 +56,8 @@ export const getRoom = (roomId: string): Promise<Room> => {
     fetch(`/api/get-room/${roomId}`)
       .then((res) => {
         if (res.status !== 200) reject(new Error("Room not found"));
-        if (res.status === 200) res.json().then((data: Room) => resolve(data));
+        if (res.status === 200)
+          res.json().then((data: string) => resolve(JSON.parse(data)));
       })
       // network error
       .catch((err) => reject(err));
