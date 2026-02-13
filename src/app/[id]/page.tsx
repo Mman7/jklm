@@ -1,11 +1,13 @@
 "use client";
 
 import PlayerListChat from "@/src/components/game/PlayerListChat";
+import PlayerInput from "@/src/components/PlayerInput";
 import useMounted from "@/src/hooks/useMounted";
+import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import {
   enterChannel,
   initAbly,
-  sendMessage,
+  leaveRoom,
   subscribeToMessages,
 } from "@/src/library/client/ably_client";
 import { Status } from "@/src/types/enum/player_status";
@@ -17,7 +19,7 @@ import { useEffect } from "react";
 export default function GamePage() {
   const params = useParams();
   const { playerId, name } = useGame();
-  const { setChannel, channel, setRoomId, updatePlayerStats, player } =
+  const { setChannel, channel, updatePlayerStats, player, setLastChat } =
     useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";
@@ -26,30 +28,29 @@ export default function GamePage() {
     if (!mounted) return;
     const ch = initAbly({ roomId, playerId });
     setChannel(ch);
-    setRoomId(roomId);
 
     updatePlayerStats({
       name: name,
       playerId: playerId,
       score: player.score,
-      lastChat: "fuck",
+      lastChat: "",
       status: Status.waiting,
     });
 
     subscribeToMessages((msg) => {
-      console.log("New message:", msg.text);
+      setLastChat({ message: msg.text, senderId: msg.playerId });
     });
 
-    sendMessage("fuck");
-
     return () => {
-      channel?.unsubscribe();
+      leaveRoom();
     };
   }, [mounted]);
 
   useEffect(() => {
     enterChannel(player);
   }, [player]);
+
+  useEffect(() => {}, [channel]);
 
   return (
     <div className="flex h-full w-full">
@@ -62,9 +63,7 @@ export default function GamePage() {
             <figure className="">Image</figure>
             <h1>WHat is this</h1>
           </div>
-          <footer className="-mt-6 flex h-12 w-full items-center bg-gray-300 p-4">
-            Text
-          </footer>
+          <PlayerInput />
         </main>
       </section>
       <PlayerListChat />

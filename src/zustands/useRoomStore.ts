@@ -2,19 +2,29 @@ import { create } from "zustand";
 import Ably from "ably";
 import { Player } from "../types/player";
 import { Status } from "../types/enum/player_status";
+import { Room } from "../types/room";
 
 interface RoomStore {
-  roomId: string;
-  setRoomId: (roomId: string) => void;
+  room: Room;
+  setRoom: (roomStat: Room) => void;
   player: Player;
   updatePlayerStats: (playerParam: Player) => void;
+  lastChat: lastMessage;
+  setLastChat: (lastChat: lastMessage) => void;
   channel: Ably.RealtimeChannel | null;
-  setChannel: (channel: Ably.RealtimeChannel) => void;
+  setChannel: (channel: Ably.RealtimeChannel | null) => void;
 }
 
+const defaultRoom: Room = {
+  createdAt: new Date(),
+  hostId: "",
+  id: "",
+  scores: {},
+};
+
 const useRoomStore = create<RoomStore>((set) => ({
-  roomId: "",
-  setRoomId: (roomIdValue: string) => set(() => ({ roomId: roomIdValue })),
+  room: defaultRoom,
+  setRoom: (roomStat: Room) => set(() => ({ room: roomStat })),
   player: {
     name: "",
     playerId: "",
@@ -22,6 +32,8 @@ const useRoomStore = create<RoomStore>((set) => ({
     status: Status.waiting,
     lastChat: "",
   },
+  lastChat: { message: "", senderId: "" },
+  setLastChat: (lastChat: lastMessage) => set(() => ({ lastChat: lastChat })),
   updatePlayerStats: (playerParam: Player) =>
     set(() => ({ player: playerParam })),
   channel: null,
@@ -29,7 +41,24 @@ const useRoomStore = create<RoomStore>((set) => ({
 }));
 
 export default function useRoom() {
-  const { roomId, setRoomId, channel, setChannel, player, updatePlayerStats } =
-    useRoomStore();
-  return { roomId, setRoomId, channel, setChannel, player, updatePlayerStats };
+  const {
+    room,
+    setRoom,
+    channel,
+    setChannel,
+    player,
+    updatePlayerStats,
+    lastChat,
+    setLastChat,
+  } = useRoomStore();
+  return {
+    room,
+    setRoom,
+    channel,
+    setChannel,
+    player,
+    updatePlayerStats,
+    lastChat,
+    setLastChat,
+  };
 }

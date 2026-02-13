@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import JoinDialog from "../components/dialogs/joinDialog";
 import RoomList from "../components/RoomList";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ import useGame from "../zustands/useGameStore";
 import useLoadingDialog from "../zustands/useLoadingStore";
 import Dialog from "../components/dialogs/dialog";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import useRoom from "../zustands/useRoomStore";
 
 export default function Home() {
   const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =
@@ -23,6 +24,12 @@ export default function Home() {
   const { setShowDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
   const { playerId } = useGame();
+  const { setRoom, channel } = useRoom();
+
+  useEffect(() => {
+    //* TODO temporaly fix user back and forward page cause bug
+    if (channel) location.reload();
+  }, [channel]);
 
   const handleHostRoom = async () => {
     if (!isUserValid) {
@@ -31,9 +38,10 @@ export default function Home() {
     }
     setShowLoading(true);
 
-    await hostRoom({ playerId }).then((room: Room) =>
-      router.push(`/${room.id}`),
-    );
+    await hostRoom({ playerId }).then((room: Room) => {
+      router.push(`/${room.id}`);
+      setRoom(room);
+    });
     setShowLoading(false);
   };
 
@@ -45,9 +53,10 @@ export default function Home() {
     setShowLoading(true);
 
     await getRoom(dialogCode)
-      .then((roomData: Room) => {
+      .then((room: Room) => {
         // room found, navigate to room
-        router.push(`/${roomData.id}`);
+        router.push(`/${room.id}`);
+        setRoom(room);
       })
       .catch(() => {
         // handle room not found

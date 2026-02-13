@@ -10,8 +10,8 @@ export default function PlayerListChat() {
 
   return (
     <section className="hidden w-48 flex-1 flex-col gap-3 bg-red-100 p-4 lg:flex">
-      {players.map((p: Player) => (
-        <PlayerCard key={p.playerId} player={p} />
+      {players.map((p: Player, index) => (
+        <PlayerCard key={index} player={p} />
       ))}
     </section>
   );
