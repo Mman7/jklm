@@ -1,4 +1,7 @@
+//TODO load file path to hashMap to improved performance of each fetch
 import { readdirSync, readFileSync } from "fs";
+import path from "path"; // Optional, but useful for path manipulation
+import { readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { Question } from "../types/question";
@@ -27,4 +30,37 @@ function removedImageAndAnswer(question: Question) {
   question.challenge.image.base64 = "";
   question.answer = "";
   return question;
+}
+
+export function getImage(hash: string) {
+  const dirPath = join(__dirname, "../data/popsauces");
+  const files = readdirSync(dirPath);
+
+  for (const file of files) {
+    const filePath = join(dirPath, file);
+    const fileContent = readFileSync(filePath, "utf-8");
+    const question = JSON.parse(fileContent) as Question;
+
+    if (question.challenge.hash === hash) {
+      console.log(question.challenge.image.base64);
+      return question.challenge.image.base64;
+    }
+  }
+
+  return null;
+}
+
+export async function findAnswer(hash: string) {
+  const filePath = path.join(__dirname, "../../data/answers_pairs.json");
+  const file = await readFile(filePath, "utf-8");
+  const parseFile = JSON.parse(file);
+
+  return parseFile[hash];
+}
+
+export async function AnswerComparator(
+  answerInStore: string,
+  submitAnswer: string,
+) {
+  return answerInStore === submitAnswer;
 }
