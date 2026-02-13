@@ -1,0 +1,18 @@
+{
+  "answer": "Burundi",
+  "submitter": "Phengar",
+  "details": "",
+  "challenge": {
+    "end_time": 1739806368670,
+    "image": {
+      "type": "image/svg+xml",
+      "data": { "_placeholder": true, "num": 0 },
+      "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9Ii01MCAtMzAgMTAwIDYwIiBmaWxsPSIjY2UxMTI2Ij4KCTx0aXRsZT5GbGFnIG9mIEJ1cnVuZGk8L3RpdGxlPgoJPGRlZnM+CgkJPGNsaXBQYXRoIGlkPSJjIj4KCQkJPHBhdGggZD0ibS01MC0zMEg1MHY2MEgtNTB6Ii8+CgkJPC9jbGlwUGF0aD4KCTwvZGVmcz4KCTxwYXRoIGQ9Im0tNTAtMzBINTB2NjBILTUweiIvPgoJPHBhdGggZmlsbD0iIzFlYjUzYSIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2U9IiNmZmYiIGNsaXAtcGF0aD0idXJsKCNjKSIgZD0ibS02MC0zNnY3Mkw2MC0zNnY3MnoiLz4KCTxjaXJjbGUgZmlsbD0iI2ZmZiIgcj0iMTciLz4KCTxwYXRoICBzdHJva2U9IiMxZWI1M2EiIHN0cm9rZS13aWR0aD0iLjM2IiBpZD0icyIgZD0ibTEuMDUtMTAuNjJoMi4xTDIuMS04LjhsMS4wNSAxLjgyaC0yLjFMMC01LjE2LTEuMDUtNi45OGgtMi4xTC0yLjEtOC44bC0xLjA1LTEuODJoMi4xTDAtMTIuNDR6Ii8+Cgk8dXNlIHg9Ii03LjYyIiB5PSIxMy4yIiB4bGluazpocmVmPSIjcyIvPgoJPHVzZSB4PSI3LjYyIiB5PSIxMy4yIiB4bGluazpocmVmPSIjcyIvPgo8L3N2Zz4K",
+      "extension": "svg"
+    },
+    "prompt": "What country is the flag from?",
+    "text": null,
+    "hash": "2457ff52e7967ec73ecefc5d1ffaef57afccab5a"
+  },
+  "tags": ["Hard"]
+}
