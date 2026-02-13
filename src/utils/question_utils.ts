@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export function getRandomQuestions(count: number = 10) {
-  const dirPath = join(__dirname, "../data/popsauces");
+  const dirPath = join(__dirname, "../../data/popsauces");
   const files = readdirSync(dirPath);
   const questions: Question[] = [];
 
@@ -27,13 +27,15 @@ export function getRandomQuestions(count: number = 10) {
 }
 
 function removedImageAndAnswer(question: Question) {
-  question.challenge.image.base64 = "";
   question.answer = "";
+  if (question.challenge.image) {
+    question.challenge.image.base64 = "";
+  }
   return question;
 }
 
 export function getImage(hash: string) {
-  const dirPath = join(__dirname, "../data/popsauces");
+  const dirPath = join(__dirname, "../../data/popsauces");
   const files = readdirSync(dirPath);
 
   for (const file of files) {
@@ -42,7 +44,6 @@ export function getImage(hash: string) {
     const question = JSON.parse(fileContent) as Question;
 
     if (question.challenge.hash === hash) {
-      console.log(question.challenge.image.base64);
       return question.challenge.image.base64;
     }
   }
