@@ -2,13 +2,12 @@
 
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
+import { useLastChat } from "@/src/hooks/useLastChat";
 import useMounted from "@/src/hooks/useMounted";
-import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import {
   enterChannel,
   initAbly,
   leaveRoom,
-  subscribeToMessages,
 } from "@/src/library/client/ably_client";
 import { Status } from "@/src/types/enum/player_status";
 import useGame from "@/src/zustands/useGameStore";
@@ -19,10 +18,11 @@ import { useEffect } from "react";
 export default function GamePage() {
   const params = useParams();
   const { playerId, name } = useGame();
-  const { setChannel, channel, updatePlayerStats, player, setLastChat } =
-    useRoom();
+  const { setChannel, channel, updatePlayerStats, player } = useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";
+  // initialize channel
+  useLastChat();
 
   useEffect(() => {
     if (!mounted) return;
@@ -35,10 +35,6 @@ export default function GamePage() {
       score: player.score,
       lastChat: "",
       status: Status.waiting,
-    });
-
-    subscribeToMessages((msg) => {
-      setLastChat({ message: msg.text, senderId: msg.playerId });
     });
 
     return () => {

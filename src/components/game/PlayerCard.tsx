@@ -1,15 +1,14 @@
+import { useLastChat } from "@/src/hooks/useLastChat";
 import { Player } from "@/src/types/player";
 import useGame from "@/src/zustands/useGameStore";
-import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect, useState } from "react";
 
 interface PlayerCardProps {
   player: Player;
-  lastChat?: string;
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const { lastChat } = useRoom();
+  const { lastChat } = useLastChat();
   const { playerId } = useGame();
   const [lastMessage, setLastMessage] = useState("");
 
