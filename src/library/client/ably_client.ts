@@ -32,7 +32,6 @@ export function sendMessage(text: string, playerId: string) {
     playerId,
     timestamp: Date.now(),
   });
-  updateLastChat(text);
 }
 
 export function subscribeToMessages(
@@ -77,12 +76,7 @@ export async function leaveRoom() {
   // 3️⃣ Now it's safe to release
   ably.channels.release(channel.name);
 }
-
-// update last chat to persence
-export function updateLastChat(message: string) {
-  if (!channel) return;
-  channel.presence.update(message);
-}
+// // update last chat to persence
 
 export async function getAllPlayers() {
   if (!channel) return;
