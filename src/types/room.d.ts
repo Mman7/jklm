@@ -2,5 +2,5 @@ export interface Room {
   createdAt: Date;
   hostId: string;
   id: string;
-  scores: {};
+  scores?: Record<string, number>;
 }

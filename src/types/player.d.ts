@@ -6,7 +6,7 @@ export interface Player {
   status: Status;
 }
 
-export interface UpdatedPlayerScore {
+export interface PlayerScore {
   playerId: string;
   score: number;
 }
