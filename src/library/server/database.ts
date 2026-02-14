@@ -18,13 +18,30 @@ client.on("error", (err) => console.log("Redis Client Error", err));
 
 await client.connect();
 
-export const getRoomById = async (id: string) => {
+export const getRoomById = async (id: string): Promise<Room | null> => {
   const key = `room-${id}`;
   const result = (await client.json.get(key)) as Room | null;
   if (result) {
     await client.expire(key, 10800); // reset TTL to 5 min
   }
   return result;
+};
+
+// TODO add score depends on places
+export const addScore = async (playerId: string, roomId: string) => {
+  const data = await getRoomById(roomId);
+  if (!data || typeof data !== "string") return;
+
+  const room = JSON.parse(data);
+  room.scores ??= {};
+  // if has player score add to it, else create new player score
+  room.scores[playerId] = (room.scores[playerId] ?? 0) + 10;
+  updateRoom(roomId, room);
+};
+
+export const updateRoom = async (roomId: string, room: Room) => {
+  await client.json.set(`room-${roomId}`, "$", JSON.stringify(room));
+  await client.expire(roomId, 10800);
 };
 
 // Function to set a JSON key with TTL
