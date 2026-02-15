@@ -8,7 +8,7 @@ export interface Question {
 
 export interface Challenge {
   end_time: number; // Unix timestamp (ms)
-  image: ChallengeImage;
+  image: ChallengeImage | null;
   prompt: string;
   text: string | null;
   hash: string;
