@@ -1,15 +1,15 @@
-import { InputEvent, useState } from "react";
+import { useState } from "react";
 import { sendMessage } from "../library/client/ably_client";
-import useGame from "../zustands/useGameStore";
+import useAuth from "../zustands/useAuthStore";
 
 export default function PlayerInput() {
-  const { playerId } = useGame();
+  const { playerId } = useAuth();
   const [inputValue, setInputValue] = useState<string>("");
 
   const handleKeyDown = (event: any) => {
     if (event.key === "Enter") {
       sendMessage(inputValue, playerId);
-      setInputValue(" ");
+      setInputValue("");
     }
   };
 

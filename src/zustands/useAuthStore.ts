@@ -1,17 +1,20 @@
-import { TokenRequest } from "ably";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface AuthStore {
-  token: TokenRequest | null;
-  setToken: (token: TokenRequest | null) => void;
+  name: string;
+  setName: (name: string) => void;
+  playerId: string;
+  setPlayerId: (uuid: string) => void;
 }
 
 const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      token: null,
-      setToken: (token: TokenRequest | null) => set({ token }),
+      name: "",
+      playerId: "",
+      setName: (name: string) => set({ name }),
+      setPlayerId: (uuid: string) => set({ playerId: uuid }),
     }),
     {
       name: "auth-storage",
@@ -20,6 +23,6 @@ const useAuthStore = create<AuthStore>()(
 );
 
 export default function useAuth() {
-  const { token, setToken } = useAuthStore();
-  return { token, setToken };
+  const { name, setName, playerId, setPlayerId } = useAuthStore();
+  return { name, setName, playerId, setPlayerId };
 }

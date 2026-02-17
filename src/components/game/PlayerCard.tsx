@@ -1,6 +1,6 @@
 import { useLastChat } from "@/src/hooks/useLastChat";
 import { Player } from "@/src/types/player";
-import useGame from "@/src/zustands/useGameStore";
+import useAuth from "@/src/zustands/useAuthStore";
 import { useEffect, useState } from "react";
 
 interface PlayerCardProps {
@@ -9,7 +9,7 @@ interface PlayerCardProps {
 
 export default function PlayerCard({ player }: PlayerCardProps) {
   const { lastChat } = useLastChat();
-  const { playerId } = useGame();
+  const { playerId } = useAuth();
   const [lastMessage, setLastMessage] = useState("");
 
   useEffect(() => {

@@ -10,14 +10,14 @@ import {
   leaveRoom,
 } from "@/src/library/client/ably_client";
 import { Status } from "@/src/types/enum/player_status";
-import useGame from "@/src/zustands/useGameStore";
+import useAuth from "@/src/zustands/useAuthStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function GamePage() {
   const params = useParams();
-  const { playerId, name } = useGame();
+  const { playerId, name } = useAuth();
   const { setChannel, updatePlayerStats, player } = useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";

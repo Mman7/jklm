@@ -1,10 +1,10 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import useGame from "../zustands/useGameStore";
+import useAuth from "../zustands/useAuthStore";
 
 export default function Navbar() {
-  const { name } = useGame();
+  const { name } = useAuth();
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <div className="navbar-start">

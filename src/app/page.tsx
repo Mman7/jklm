@@ -9,11 +9,11 @@ import useJoinDialog from "../hooks/useJoinDialog";
 import { Room } from "../types/room";
 import useUserValid from "../hooks/useUserValid";
 import useNameDialog from "../zustands/useNameDialogStore";
-import useGame from "../zustands/useGameStore";
 import useLoadingDialog from "../zustands/useLoadingStore";
 import Dialog from "../components/dialogs/dialog";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import useRoom from "../zustands/useRoomStore";
+import useAuth from "../zustands/useAuthStore";
 
 export default function Home() {
   const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =
@@ -23,7 +23,7 @@ export default function Home() {
   const { isUserValid } = useUserValid();
   const { setShowDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
-  const { playerId } = useGame();
+  const { playerId } = useAuth();
   const { setRoom, channel } = useRoom();
 
   useEffect(() => {
