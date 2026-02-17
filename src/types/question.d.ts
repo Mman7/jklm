@@ -6,6 +6,10 @@ export interface Question {
   tags: Tag[];
 }
 
+export interface QuestionHashOnly {
+  hash: string;
+}
+
 export interface Challenge {
   end_time: number; // Unix timestamp (ms)
   image: ChallengeImage | null;

@@ -18,7 +18,7 @@ import { useEffect } from "react";
 export default function GamePage() {
   const params = useParams();
   const { playerId, name } = useGame();
-  const { setChannel, channel, updatePlayerStats, player } = useRoom();
+  const { setChannel, updatePlayerStats, player } = useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";
   // initialize channel
@@ -28,7 +28,6 @@ export default function GamePage() {
     if (!mounted) return;
     const ch = initAbly({ roomId, playerId });
     setChannel(ch);
-
     updatePlayerStats({
       name: name,
       playerId: playerId,
@@ -45,8 +44,6 @@ export default function GamePage() {
   useEffect(() => {
     enterChannel(player);
   }, [player]);
-
-  useEffect(() => {}, [channel]);
 
   return (
     <div className="flex h-full w-full">

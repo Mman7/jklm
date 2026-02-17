@@ -1,11 +1,9 @@
-import { Challenge } from "@/src/types/question";
-import { base64ToBlob } from "@/src/utils/blob_helper";
-import { getChallenge } from "@/src/utils/question_utils";
+import { getQuestion } from "@/src/utils/question_utils";
 
 export function GET(_request: Request, { params }: any): Promise<Response> {
   return new Promise(async (resolve) => {
     const { id } = await params;
-    const challenge: Challenge | null = await getChallenge(id);
+    const question = await getQuestion(id);
 
     // ? investigate send blob base64 image or pure json base64
 
@@ -13,7 +11,7 @@ export function GET(_request: Request, { params }: any): Promise<Response> {
     // blob.arrayBuffer().then((buffer) => {
     // });
     resolve(
-      new Response(JSON.stringify(challenge), {
+      new Response(JSON.stringify(question), {
         headers: { "Content-Type": "application/json" },
       }),
     );
