@@ -11,17 +11,14 @@ const dirPath = join(__dirname, "../../data/popsauces");
 
 const questionHashMap = new Map<string, Question>();
 
-function loadHashMap() {
-  const files = readdirSync(dirPath);
-  files.forEach((file) => {
-    const filePath = join(dirPath, file);
-    const fileContent = readFileSync(filePath, "utf-8");
-    const question = JSON.parse(fileContent) as Question;
-    questionHashMap.set(question.challenge.hash, question);
-  });
-}
+const files = readdirSync(dirPath);
 
-loadHashMap();
+files.forEach((file) => {
+  const filePath = join(dirPath, file);
+  const fileContent = readFileSync(filePath, "utf-8");
+  const question = JSON.parse(fileContent) as Question;
+  questionHashMap.set(question.challenge.hash, question);
+});
 
 export function getRandomQuestions(count: number = 10) {
   const hashes = Array.from(questionHashMap.keys());
