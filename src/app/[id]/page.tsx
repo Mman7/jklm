@@ -4,25 +4,52 @@ import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useMounted from "@/src/hooks/useMounted";
+import useUserValid from "@/src/hooks/useUserValid";
 import {
   enterChannel,
   initAbly,
   leaveRoom,
 } from "@/src/library/client/ably_client";
+import { getRoom } from "@/src/library/client/client";
 import { Status } from "@/src/types/enum/player_status";
 import useAuth from "@/src/zustands/useAuthStore";
+import useLoadingDialog from "@/src/zustands/useLoadingStore";
+import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function GamePage() {
   const params = useParams();
+  const router = useRouter();
   const { playerId, name } = useAuth();
-  const { setChannel, updatePlayerStats, player } = useRoom();
+  const { setChannel, updatePlayerStats, player, setRoom } = useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";
+  const { isUserValid } = useUserValid();
+  const { setShowNameDialog } = useNameDialog();
+  const { setShowLoading } = useLoadingDialog();
   // initialize channel
   useLastChat();
+
+  useEffect(() => {
+    const loadRoom = async () => {
+      if (!isUserValid) {
+        setShowNameDialog(true);
+        return;
+      }
+      setShowLoading(true);
+      try {
+        await getRoom(roomId).then((res) => setRoom(res));
+      } catch {
+        // handle room not found
+        router.push("/");
+      } finally {
+        setShowLoading(false);
+      }
+    };
+    loadRoom();
+  }, [mounted, isUserValid]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -35,7 +62,6 @@ export default function GamePage() {
       lastChat: "",
       status: Status.waiting,
     });
-
     return () => {
       leaveRoom();
     };

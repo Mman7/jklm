@@ -1,10 +1,10 @@
-import { Question } from "./question";
+import { Question, QuestionHashOnly } from "./question";
 
 export interface Room {
   createdAt: Date;
   hostId: string;
   id: string;
-  currentQuestion?: Question;
-  questionList?: Question[];
+  currentQuestion?: QuestionHashOnly;
+  questionList?: QuestionHashOnly[];
   scores?: Record<string, number>;
 }

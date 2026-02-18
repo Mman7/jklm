@@ -1,16 +1,17 @@
 import { create } from "zustand";
 
 interface useNameDialogStore {
-  showDialog: boolean;
-  setShowDialog: (showDialog: boolean) => void;
+  showNameDialog: boolean;
+  setShowNameDialog: (showDialog: boolean) => void;
 }
 
 const useNameDialogStore = create<useNameDialogStore>((set) => ({
-  showDialog: false,
-  setShowDialog: (showDialog: boolean) => set(() => ({ showDialog })),
+  showNameDialog: false,
+  setShowNameDialog: (showDialog: boolean) =>
+    set(() => ({ showNameDialog: showDialog })),
 }));
 
 export default function useNameDialog() {
-  const { showDialog, setShowDialog } = useNameDialogStore();
-  return { showDialog, setShowDialog };
+  const { showNameDialog, setShowNameDialog } = useNameDialogStore();
+  return { showNameDialog, setShowNameDialog };
 }

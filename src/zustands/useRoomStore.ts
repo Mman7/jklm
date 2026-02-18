@@ -5,7 +5,7 @@ import { Status } from "../types/enum/player_status";
 import { Room } from "../types/room";
 
 interface RoomStore {
-  room: Room;
+  room: Room | null;
   setRoom: (roomStat: Room) => void;
   player: Player;
   updatePlayerStats: (playerParam: Player) => void;
@@ -15,15 +15,8 @@ interface RoomStore {
   setChannel: (channel: Ably.RealtimeChannel | null) => void;
 }
 
-const defaultRoom: Room = {
-  createdAt: new Date(),
-  hostId: "",
-  id: "",
-  scores: {},
-};
-
 const useRoomStore = create<RoomStore>((set) => ({
-  room: defaultRoom,
+  room: null,
   setRoom: (roomStat: Room) => set(() => ({ room: roomStat })),
   player: {
     name: "",

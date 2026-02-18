@@ -55,8 +55,8 @@ export default function Home() {
     await getRoom(dialogCode)
       .then((room: Room) => {
         // room found, navigate to room
-        router.push(`/${room.id}`);
         setRoom(room);
+        router.push(`/${room.id}`);
       })
       .catch(() => {
         // handle room not found

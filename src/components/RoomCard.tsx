@@ -2,18 +2,35 @@ import { Room } from "@/src/types/room";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import { useRouter } from "next/navigation";
 import useUserValid from "../hooks/useUserValid";
+import { getRoom } from "../library/client/client";
+import useLoadingDialog from "../zustands/useLoadingStore";
+import useRoom from "../zustands/useRoomStore";
 
 export default function RoomCard({ room }: { room: Room }) {
   const router = useRouter();
-  const { setShowDialog } = useNameDialog();
+  const { setShowNameDialog } = useNameDialog();
+  const { setShowLoading } = useLoadingDialog();
+  const { setRoom } = useRoom();
   const { isUserValid } = useUserValid();
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     if (!isUserValid) {
-      setShowDialog(true);
+      setShowNameDialog(true);
       return;
     }
-    router.push(`/${room.id}`);
+    setShowLoading(true);
+
+    await getRoom(room.id)
+      .then((room: Room) => {
+        // room found, navigate to room
+        setRoom(room);
+        router.push(`/${room.id}`);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    setShowLoading(false);
   };
 
   return (
