@@ -1,5 +1,6 @@
 "use client";
 
+import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
 import { useLastChat } from "@/src/hooks/useLastChat";
@@ -13,24 +14,29 @@ import {
 import { getRoom } from "@/src/library/client/client";
 import { Status } from "@/src/types/enum/player_status";
 import useAuth from "@/src/zustands/useAuthStore";
+import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 export default function GamePage() {
   const params = useParams();
   const router = useRouter();
   const { playerId, name } = useAuth();
-  const { setChannel, updatePlayerStats, player, setRoom } = useRoom();
+  const { setChannel, updatePlayerStats, setRoom, player, room } = useRoom();
   const mounted = useMounted();
   const roomId = typeof params.id === "string" ? params.id : "";
   const { isUserValid } = useUserValid();
   const { setShowNameDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
+  const { setQuestionList } = useGame();
+  const { setCurrentQuestion } = useGame();
   // initialize channel
   useLastChat();
+
+  // TODO when start game fetch question and update question state, also update player status to playing
 
   useEffect(() => {
     const loadRoom = async () => {
@@ -40,7 +46,10 @@ export default function GamePage() {
       }
       setShowLoading(true);
       try {
-        await getRoom(roomId).then((res) => setRoom(res));
+        await getRoom(roomId).then((res) => {
+          setRoom(res);
+          setQuestionList(res?.questionList || []);
+        });
       } catch {
         // handle room not found
         router.push("/");
@@ -58,7 +67,7 @@ export default function GamePage() {
     updatePlayerStats({
       name: name,
       playerId: playerId,
-      score: player.score,
+      score: 0,
       lastChat: "",
       status: Status.waiting,
     });
@@ -71,6 +80,11 @@ export default function GamePage() {
     enterChannel(player);
   }, [player]);
 
+  useEffect(() => {
+    if (!room || !room.questionList) return;
+    setCurrentQuestion(room.questionList[0] || null);
+  }, [room]);
+
   return (
     <div className="flex h-full w-full">
       <section className="flex-3">
@@ -78,10 +92,7 @@ export default function GamePage() {
           <h1>Status Waiting bar</h1>
         </header>
         <main className="h-[calc(100%-6rem)] bg-red-200">
-          <div className="flex h-full w-full flex-col items-center justify-center">
-            <figure className="">Image</figure>
-            <h1>WHat is this</h1>
-          </div>
+          <ChallengeDisplayer />
           <PlayerInput />
         </main>
       </section>
