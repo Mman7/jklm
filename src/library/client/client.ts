@@ -1,5 +1,5 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
-import { CreateRoomRequest } from "@/src/app/api/create-room/route";
+import { CreateRoomRequest } from "@/src/app/api/room/route";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
 import { TokenRequest } from "ably";
@@ -12,7 +12,7 @@ export const hostRoom = async ({
   const req: CreateRoomRequest = { playerId: playerId };
   return new Promise((resolve, reject) => {
     // try to create room
-    fetch(`/api/create-room`, {
+    fetch(`/api/room`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const getUserToken = ({
 
 export const getRoom = (roomId: string): Promise<Room> => {
   return new Promise((resolve, reject) => {
-    fetch(`/api/get-room/${roomId}`)
+    fetch(`/api/room/${roomId}`)
       .then((res) => {
         if (res.status !== 200) reject(new Error("Room not found"));
         if (res.status === 200)
@@ -66,7 +66,7 @@ export const getRoom = (roomId: string): Promise<Room> => {
 
 export const getAllRooms = (): Promise<Room[]> => {
   return new Promise((resolve, reject) => {
-    fetch("/api/getall-room")
+    fetch("/api/room/all")
       .then((res) => res.json())
       .then((data: []) => {
         const newList = data.map((item) => JSON.parse(item));
