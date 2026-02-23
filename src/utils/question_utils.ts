@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync } from "fs";
 import path from "path"; // Optional, but useful for path manipulation
-import { readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
@@ -8,9 +7,11 @@ import { Challenge, Question, QuestionHashOnly } from "../types/question";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const dirPath = join(__dirname, "../../data/popsauces");
+const filePath = path.join(__dirname, "../../data/answers_pairs.json");
+const file = readFileSync(filePath, "utf-8");
+const parseFile = JSON.parse(file);
 
 const questionHashMap = new Map<string, Question>();
-
 const files = readdirSync(dirPath);
 
 files.forEach((file) => {
@@ -37,8 +38,10 @@ export function getRandomQuestions(count: number = 10) {
 
 function generateCountTime() {
   const now = new Date();
-  // Set the countdown to 30 seconds from now
-  const countTime = new Date(now.getTime() + 30 * 1000);
+  // Set the countdown to 5 minutes from now
+  const countTime = new Date(now.getTime() + 5 * 60 * 1000);
+  // // Set the countdown to 30 seconds from now
+  // const countTime = new Date(now.getTime() + 30 * 1000);
   return countTime;
 }
 
@@ -47,7 +50,8 @@ export function getQuestion(questionHash: string): Question | null {
   // For testing, set the end_time to 5 minutes from now
   question!.challenge.end_time = generateCountTime().getTime();
 
-  return question ? removeAnswerFromQuestion(question) : null;
+  // return question ? removeAnswerFromQuestion(question) : null;
+  return question || null;
 }
 
 function removeAnswerFromQuestion(question: Question): Question {
@@ -65,10 +69,6 @@ export async function getChallenge(hash: string): Promise<null | Challenge> {
 }
 
 export async function findAnswer(hash: string): Promise<string> {
-  const filePath = path.join(__dirname, "../../data/answers_pairs.json");
-  const file = await readFile(filePath, "utf-8");
-  const parseFile = JSON.parse(file);
-
   return parseFile[hash];
 }
 
@@ -76,8 +76,15 @@ export async function AnswerComparator(
   answerInStore: string,
   submitAnswer: string,
 ) {
-  const normalizedStore = answerInStore.toLowerCase().trim();
-  const normalizedSubmit = submitAnswer.toLowerCase().trim();
+  if (!submitAnswer || !submitAnswer.trim()) {
+    return false; // Prevent empty or whitespace-only answers
+  }
+
+  const normalize = (str: string) =>
+    str.toLowerCase().trim().replace(/\s+/g, " "); // normalize multiple spaces
+
+  const normalizedStore = normalize(answerInStore);
+  const normalizedSubmit = normalize(submitAnswer);
 
   return normalizedStore.includes(normalizedSubmit);
 }

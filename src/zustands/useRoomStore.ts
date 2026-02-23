@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import Ably from "ably";
 import { Player } from "../types/player";
-import { Status } from "../types/enum/player_status";
 import { Room } from "../types/room";
 
 interface RoomStore {
   room: Room | null;
   setRoom: (roomStat: Room) => void;
-  player: Player;
+  player: Player | null;
+  players: Player[];
+  setPlayers: (players: Player[]) => void;
   updatePlayerStats: (playerParam: Player) => void;
   lastChat: lastMessage;
   setLastChat: (lastChat: lastMessage) => void;
@@ -18,13 +19,9 @@ interface RoomStore {
 const useRoomStore = create<RoomStore>((set) => ({
   room: null,
   setRoom: (roomStat: Room) => set(() => ({ room: roomStat })),
-  player: {
-    name: "",
-    playerId: "",
-    score: 0,
-    status: Status.waiting,
-    lastChat: "",
-  },
+  player: null,
+  players: [],
+  setPlayers: (players: Player[]) => set(() => ({ players })),
   lastChat: { message: "", senderId: "" },
   setLastChat: (lastChat: lastMessage) => set(() => ({ lastChat: lastChat })),
   updatePlayerStats: (playerParam: Player) =>
@@ -41,6 +38,8 @@ export default function useRoom() {
     setChannel,
     player,
     updatePlayerStats,
+    players,
+    setPlayers,
     lastChat,
     setLastChat,
   } = useRoomStore();
@@ -51,6 +50,8 @@ export default function useRoom() {
     setChannel,
     player,
     updatePlayerStats,
+    players,
+    setPlayers,
     lastChat,
     setLastChat,
   };

@@ -10,6 +10,7 @@ export function useLastChat() {
     if (!channel) return;
     subscribeToMessages((msg) => {
       // update last chat
+      console.log(msg);
       setLastChat({ message: msg.text, senderId: msg.playerId });
     });
   }, [channel]);

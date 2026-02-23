@@ -3,8 +3,10 @@
 import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
+import Timer from "@/src/components/Timer";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useMounted from "@/src/hooks/useMounted";
+import useRoomEvent from "@/src/hooks/useRoomEvent";
 import useUserValid from "@/src/hooks/useUserValid";
 import {
   enterChannel,
@@ -19,8 +21,7 @@ import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useEffectEvent } from "react";
-
+import { useEffect } from "react";
 export default function GamePage() {
   const params = useParams();
   const router = useRouter();
@@ -32,12 +33,13 @@ export default function GamePage() {
   const { setShowNameDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
   const { setQuestionList } = useGame();
-  const { setCurrentQuestion } = useGame();
+  const { setCurrentQuestionHash } = useGame();
   // initialize channel
   useLastChat();
+  useRoomEvent();
 
   // TODO when start game fetch question and update question state, also update player status to playing
-
+  // initialize player stats and enter channel
   useEffect(() => {
     if (!isUserValid) {
       setShowNameDialog(true);
@@ -66,31 +68,34 @@ export default function GamePage() {
     if (!mounted) return;
     const ch = initAbly({ roomId, playerId });
     setChannel(ch);
-    updatePlayerStats({
-      name: name,
-      playerId: playerId,
-      score: 0,
-      lastChat: "",
-      status: Status.waiting,
-    });
+
     return () => {
       leaveRoom();
     };
   }, [mounted]);
 
   useEffect(() => {
-    enterChannel(player);
+    if (player) enterChannel(player);
   }, [player]);
 
   useEffect(() => {
     if (!room || !room.questionList) return;
-    setCurrentQuestion(room.questionList[0] || null);
+    const scores = room?.scores?.[playerId];
+    updatePlayerStats({
+      name: name,
+      playerId: playerId,
+      score: scores || 0,
+      lastChat: "",
+      status: Status.waiting,
+    });
+    setCurrentQuestionHash(room.questionList[0] || null);
   }, [room]);
 
   return (
     <div className="flex h-full w-full">
       <section className="flex-3">
-        <header className="flex h-12 w-full items-center justify-center bg-gray-200">
+        <header className="flex h-12 w-full flex-col items-center justify-center bg-gray-200">
+          <Timer />
           <h1>Status Waiting bar</h1>
         </header>
         <main className="h-[calc(100%-6rem)] bg-red-200">

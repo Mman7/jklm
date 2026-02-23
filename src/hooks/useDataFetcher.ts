@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Question } from "../types/question";
 
 export default function useDataFetcher() {

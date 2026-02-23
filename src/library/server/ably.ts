@@ -1,4 +1,5 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
+import { ServerEvent } from "@/src/types/enum/server_events";
 import Ably, { TokenRequest } from "ably";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env" });
@@ -22,4 +23,14 @@ export async function createAblyTokenRequest({ playerId }: createTokenRequest) {
 }
 export function isTokenExpired(tokenDetails: any) {
   return tokenDetails.expires < Date.now();
+}
+
+// alert player correct answer
+export function alertPlayerCorrect(playerId: string, roomId: string) {
+  const channel = ably.channels.get(`room-${roomId}`);
+  channel.publish("events", {
+    text: ServerEvent.PlayerAnsweredCorrectly,
+    playerId,
+    timestamp: Date.now(),
+  });
 }

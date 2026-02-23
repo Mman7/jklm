@@ -42,9 +42,18 @@ export function subscribeToMessages(
   }) => void,
 ) {
   if (!channel) return;
-  channel.subscribe("chat", (message) => {
-    onMessage(message.data);
-  });
+  channel.subscribe("chats", (message) => onMessage(message.data));
+}
+
+export function subscribeToEvents(
+  onMessage: (msg: {
+    text: string;
+    timestamp: number;
+    playerId: string;
+  }) => void,
+) {
+  if (!channel) return;
+  channel.subscribe("events", (message) => onMessage(message.data));
 }
 
 export function hasJoined(channelName: string) {
@@ -85,4 +94,10 @@ export async function getAllPlayers() {
     clientId: member.clientId,
     ...member.data,
   }));
+}
+
+// update player stats to presence
+export async function ablyUpdatePlayerStats(playerProps: Player) {
+  if (!channel) return;
+  await channel.presence.update(playerProps);
 }
