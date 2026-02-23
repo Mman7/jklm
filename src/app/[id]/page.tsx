@@ -33,11 +33,13 @@ export default function GamePage() {
   useLastChat();
 
   useEffect(() => {
+    if (!isUserValid) {
+      setShowNameDialog(true);
+      return;
+    } else {
+      setShowNameDialog(false);
+    }
     const loadRoom = async () => {
-      if (!isUserValid) {
-        setShowNameDialog(true);
-        return;
-      }
       setShowLoading(true);
       try {
         await getRoom(roomId).then((res) => setRoom(res));

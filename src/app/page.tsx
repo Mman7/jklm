@@ -21,7 +21,7 @@ export default function Home() {
   const router = useRouter();
   const [showNotFound, setNotFound] = useState(false);
   const { isUserValid } = useUserValid();
-  const { setShowDialog } = useNameDialog();
+  const { setShowNameDialog } = useNameDialog();
   const { setShowLoading } = useLoadingDialog();
   const { playerId } = useAuth();
   const { setRoom, channel } = useRoom();
@@ -33,7 +33,7 @@ export default function Home() {
 
   const handleHostRoom = async () => {
     if (!isUserValid) {
-      setShowDialog(true);
+      setShowNameDialog(true);
       return;
     }
     setShowLoading(true);
@@ -47,7 +47,7 @@ export default function Home() {
 
   const handleJoinRoom = async () => {
     if (!isUserValid) {
-      setShowDialog(true);
+      setShowNameDialog(true);
       return;
     }
     setShowLoading(true);

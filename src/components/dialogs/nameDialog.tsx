@@ -7,18 +7,18 @@ import { generateNameWithUUID } from "@/src/library/client/client";
 import useAuth from "@/src/zustands/useAuthStore";
 
 export default function NameDialog() {
-  const { setShowDialog, showDialog } = useNameDialog();
+  const { setShowNameDialog, showNameDialog } = useNameDialog();
   const [inputValue, setInputValue] = useState<string>("");
   const { name, setName, setPlayerId } = useAuth();
 
   const handleSubmit = () => {
     setName(inputValue);
     setPlayerId(generateNameWithUUID(inputValue));
-    setShowDialog(false);
+    setShowNameDialog(false);
   };
 
   const closeModal = () => {
-    setShowDialog(false);
+    setShowNameDialog(false);
   };
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function NameDialog() {
   }, [name]);
 
   return (
-    <Dialog open={showDialog} onClose={() => closeModal()}>
+    <Dialog open={showNameDialog} onClose={() => closeModal()}>
       <div>
         <h3 className="mb-1 text-lg font-bold">Enter Your Name</h3>
         <input
