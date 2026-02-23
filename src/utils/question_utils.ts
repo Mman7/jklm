@@ -35,8 +35,18 @@ export function getRandomQuestions(count: number = 10) {
   return questions;
 }
 
+function generateCountTime() {
+  const now = new Date();
+  // Set the countdown to 30 seconds from now
+  const countTime = new Date(now.getTime() + 30 * 1000);
+  return countTime;
+}
+
 export function getQuestion(questionHash: string): Question | null {
   const question = questionHashMap.get(questionHash);
+  // For testing, set the end_time to 5 minutes from now
+  question!.challenge.end_time = generateCountTime().getTime();
+
   return question ? removeAnswerFromQuestion(question) : null;
 }
 
@@ -54,7 +64,7 @@ export async function getChallenge(hash: string): Promise<null | Challenge> {
   return question ? question.challenge : null;
 }
 
-export async function findAnswer(hash: string) {
+export async function findAnswer(hash: string): Promise<string> {
   const filePath = path.join(__dirname, "../../data/answers_pairs.json");
   const file = await readFile(filePath, "utf-8");
   const parseFile = JSON.parse(file);
@@ -66,5 +76,8 @@ export async function AnswerComparator(
   answerInStore: string,
   submitAnswer: string,
 ) {
-  return answerInStore === submitAnswer;
+  const normalizedStore = answerInStore.toLowerCase().trim();
+  const normalizedSubmit = submitAnswer.toLowerCase().trim();
+
+  return normalizedStore.includes(normalizedSubmit);
 }
