@@ -1,9 +1,22 @@
 import { useEffect, useRef, useState } from "react";
+import useGame from "../zustands/useGameStore";
 
-export default function useCountdown(endTimeMs: number) {
+export default function useCountdown(endTimeMs: number | null) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { setTimer } = useGame();
 
   const calculateTimeLeft = () => {
+    // Protect against invalid end time
+    if (!endTimeMs) {
+      return {
+        totalMs: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        isExpired: false,
+      };
+    }
     const diff = endTimeMs - Date.now();
 
     if (diff <= 0) {
@@ -30,6 +43,9 @@ export default function useCountdown(endTimeMs: number) {
   };
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  useEffect(() => {
+    setTimer(timeLeft);
+  }, [timeLeft]);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {

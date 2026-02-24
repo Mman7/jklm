@@ -1,12 +1,17 @@
 import useDataFetcher from "@/src/hooks/useDataFetcher";
+import { PlayerStatus } from "@/src/types/enum/player_status";
 import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
+import useQuestion from "@/src/zustands/useQuestionStore";
+import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect } from "react";
 
 export default function ChallengeDisplayer() {
-  const { currentQuestionHash, setCurrentQuestion } = useGame();
+  const { showPicture } = useGame();
+  const { currentQuestionHash, setCurrentQuestion } = useQuestion();
   const { setUrl, data, isFetching } = useDataFetcher();
   const { setShowLoading } = useLoadingDialog();
+  const { updatePlayerStats, player } = useRoom();
 
   useEffect(() => {
     if (!currentQuestionHash) return;
@@ -14,7 +19,10 @@ export default function ChallengeDisplayer() {
   }, [currentQuestionHash]);
 
   useEffect(() => {
-    if (data) setCurrentQuestion(data);
+    if (data) {
+      setCurrentQuestion(data);
+      console.log(data);
+    }
   }, [data]);
 
   useEffect(() => {
@@ -22,6 +30,11 @@ export default function ChallengeDisplayer() {
       setShowLoading(true);
     } else {
       setShowLoading(false);
+      if (!player) return;
+      updatePlayerStats({
+        ...player,
+        status: PlayerStatus.fetched,
+      });
     }
   }, [isFetching]);
 
@@ -47,11 +60,13 @@ export default function ChallengeDisplayer() {
       <div className="flex h-full flex-col items-center justify-center p-6">
         <h1 className="mb-2 text-xl font-bold">{data?.challenge.prompt}</h1>
         <figure className="rounded-2xl">
-          <img
-            className="max-w-100"
-            src={`data:${data?.challenge.image?.type};base64,${data?.challenge.image?.base64}`}
-            alt={data?.details}
-          />
+          {showPicture && (
+            <img
+              className="max-w-100"
+              src={`data:${data?.challenge.image?.type};base64,${data?.challenge.image?.base64}`}
+              alt={data?.details}
+            />
+          )}
         </figure>
       </div>
     );

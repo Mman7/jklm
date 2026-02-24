@@ -1,5 +1,5 @@
-//TODO implement ably for chat interaction
 import { Player } from "@/src/types/player";
+import { SyncData } from "@/src/types/sync_data";
 import Ably from "ably";
 
 let ably: Ably.Realtime | undefined;
@@ -27,7 +27,7 @@ export function initAbly({
 
 export function sendMessage(text: string, playerId: string) {
   if (!channel) return;
-  channel.publish("chat", {
+  channel.publish("chats", {
     text,
     playerId,
     timestamp: Date.now(),
@@ -99,5 +99,29 @@ export async function getAllPlayers() {
 // update player stats to presence
 export async function ablyUpdatePlayerStats(playerProps: Player) {
   if (!channel) return;
-  await channel.presence.update(playerProps);
+  await channel.presence.update((prev: any) => playerProps);
+}
+
+// SYNC DATA
+
+// send current question and timer to all players
+export function sendSyncData(syncData: SyncData) {
+  if (!channel) return;
+  console.log("sendSync");
+  channel.publish("sync", syncData);
+}
+
+// send sync request to all players to fetch current question and timer
+export function sendSyncRequest() {
+  if (!channel) return;
+  console.log("send sync request");
+
+  channel.publish("sync", "sync_request");
+}
+
+// subscribe to sync data
+export function subscribeToSync(onSync: (syncData: any) => void) {
+  if (!channel) return;
+  console.log("sub to sync");
+  channel.subscribe("sync", (message) => onSync(message.data));
 }

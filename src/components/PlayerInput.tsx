@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { sendMessage } from "../library/client/ably_client";
 import useAuth from "../zustands/useAuthStore";
-import useGame from "../zustands/useGameStore";
+import useQuestion from "../zustands/useQuestionStore";
 import {
   AnswerValidationRequest,
   AnswerValidationResponse,
@@ -25,7 +25,7 @@ async function validateAnswer(
 export default function PlayerInput() {
   const { playerId } = useAuth();
   const { room } = useRoom();
-  const { currentQuestionHash } = useGame();
+  const { currentQuestionHash } = useQuestion();
   const [inputValue, setInputValue] = useState<string>("");
 
   const handleKeyDown = (event: any) => {
@@ -48,7 +48,6 @@ export default function PlayerInput() {
   };
 
   return (
-    //TODO implement user input
     <footer className="-mt-6 flex h-12 w-full items-center bg-gray-300 p-4">
       <input
         value={inputValue}

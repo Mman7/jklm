@@ -3,7 +3,8 @@
 import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
-import Timer from "@/src/components/Timer";
+import TimerBar from "@/src/components/Timer";
+import useDataSyncManager from "@/src/hooks/useDataSyncManager";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useMounted from "@/src/hooks/useMounted";
 import useRoomEvent from "@/src/hooks/useRoomEvent";
@@ -13,71 +14,54 @@ import {
   initAbly,
   leaveRoom,
 } from "@/src/library/client/ably_client";
-import { getRoom } from "@/src/library/client/client";
-import { Status } from "@/src/types/enum/player_status";
+import { PlayerStatus } from "@/src/types/enum/player_status";
 import useAuth from "@/src/zustands/useAuthStore";
-import useGame from "@/src/zustands/useGameStore";
-import useLoadingDialog from "@/src/zustands/useLoadingStore";
+import useQuestion from "@/src/zustands/useQuestionStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect } from "react";
+import useRoomInitializer from "@/src/hooks/useRoomInitializer";
+import useShowAnswer from "@/src/zustands/useShowAnswerStore";
+import ShowAnswer from "@/src/components/ShowAnswer";
+
 export default function GamePage() {
-  const params = useParams();
-  const router = useRouter();
   const { playerId, name } = useAuth();
-  const { setChannel, updatePlayerStats, setRoom, player, room } = useRoom();
-  const mounted = useMounted();
+  const params = useParams();
   const roomId = typeof params.id === "string" ? params.id : "";
+  const { setChannel, updatePlayerStats, player, room, channel } = useRoom();
+  const mounted = useMounted();
   const { isUserValid } = useUserValid();
   const { setShowNameDialog } = useNameDialog();
-  const { setShowLoading } = useLoadingDialog();
-  const { setQuestionList } = useGame();
-  const { setCurrentQuestionHash } = useGame();
+  const { setCurrentQuestionHash } = useQuestion();
+  const { sendReqSync } = useDataSyncManager();
+  const { showAnswer } = useShowAnswer();
+
   // initialize channel
   useLastChat();
   useRoomEvent();
+  useRoomInitializer();
 
-  // TODO when start game fetch question and update question state, also update player status to playing
   // initialize player stats and enter channel
   useEffect(() => {
     if (!isUserValid) {
       setShowNameDialog(true);
-      return;
     } else {
       setShowNameDialog(false);
     }
-    const loadRoom = async () => {
-      setShowLoading(true);
-      try {
-        await getRoom(roomId).then((res) => {
-          setRoom(res);
-          setQuestionList(res?.questionList || []);
-        });
-      } catch {
-        // handle room not found
-        router.push("/");
-      } finally {
-        setShowLoading(false);
-      }
-    };
-    loadRoom();
   }, [mounted, isUserValid]);
 
+  // initialize ably channel and presence
   useEffect(() => {
     if (!mounted) return;
     const ch = initAbly({ roomId, playerId });
     setChannel(ch);
-
     return () => {
       leaveRoom();
     };
   }, [mounted]);
 
-  useEffect(() => {
-    if (player) enterChannel(player);
-  }, [player]);
-
+  // initialize player stats and set current question when room info is loaded
   useEffect(() => {
     if (!room || !room.questionList) return;
     const scores = room?.scores?.[playerId];
@@ -86,23 +70,35 @@ export default function GamePage() {
       playerId: playerId,
       score: scores || 0,
       lastChat: "",
-      status: Status.waiting,
+      status: PlayerStatus.waiting,
     });
     setCurrentQuestionHash(room.questionList[0] || null);
+    sendReqSync();
   }, [room]);
+
+  useEffect(() => {
+    if (player) enterChannel(player);
+  }, [player]);
+
+  if (!channel) return <div>Loading...</div>;
 
   return (
     <div className="flex h-full w-full">
-      <section className="flex-3">
-        <header className="flex h-12 w-full flex-col items-center justify-center bg-gray-200">
-          <Timer />
-          <h1>Status Waiting bar</h1>
-        </header>
-        <main className="h-[calc(100%-6rem)] bg-red-200">
-          <ChallengeDisplayer />
-          <PlayerInput />
-        </main>
-      </section>
+      {showAnswer ? (
+        <ShowAnswer />
+      ) : (
+        <section className="flex-3">
+          <header className="flex h-12 w-full flex-col items-center justify-center bg-gray-200">
+            <TimerBar />
+            <h1>Status Waiting bar</h1>
+          </header>
+          <main className="h-[calc(100%-6rem)] bg-red-200">
+            <ChallengeDisplayer />
+            <PlayerInput />
+          </main>
+        </section>
+      )}
+
       <PlayerListChat />
     </div>
   );

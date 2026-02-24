@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import Ably from "ably";
+import { PlayerStatus } from "../types/enum/player_status";
 
 // * tracking players in room
 export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
   const [players, setPlayers] = useState<any[]>([]);
+  const [isAllPlayerCorrected, setIsAllPlayerCorrected] =
+    useState<boolean>(false);
+  const [isAllPlayerFetched, setIsAllPlayerFetched] = useState<boolean>(false);
 
   useEffect(() => {
     if (!channel) return;
     const updatePlayers = async () => {
       const members = await channel.presence.get();
-      //TODO fix player cant get updated when player update presence, maybe need to subscribe to presence update and get members again
       setPlayers(members.map((m: any) => m.data));
     };
 
@@ -27,5 +30,25 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
     };
   }, [channel]);
 
-  return players;
+  useEffect(() => {
+    // check is all player answer correctly
+    if (players.length === 0) {
+      setIsAllPlayerCorrected(false);
+      return;
+    }
+    const allCorrected = players.every(
+      (player) => player.status === PlayerStatus.answer_correct,
+    );
+    if (allCorrected) {
+      setIsAllPlayerCorrected(allCorrected);
+    }
+    // check if all player status is ready
+    const allReady = players.every(
+      (player) => player.status === PlayerStatus.fetched,
+    );
+
+    if (allReady) setIsAllPlayerFetched(allReady);
+  }, [players]);
+
+  return { players, isAllPlayerCorrected, isAllPlayerFetched };
 }

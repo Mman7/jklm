@@ -6,7 +6,7 @@ import { Player } from "@/src/types/player";
 
 export default function PlayerListChat() {
   const { channel } = useRoom();
-  const players = useRoomPlayers(channel);
+  const { players } = useRoomPlayers(channel);
 
   return (
     <section className="hidden w-48 flex-1 flex-col gap-3 bg-red-100 p-4 lg:flex">

@@ -1,4 +1,5 @@
 import { useLastChat } from "@/src/hooks/useLastChat";
+import { PlayerStatus } from "@/src/types/enum/player_status";
 import { Player } from "@/src/types/player";
 import useAuth from "@/src/zustands/useAuthStore";
 import { useEffect, useState } from "react";
@@ -23,16 +24,26 @@ export default function PlayerCard({ player }: PlayerCardProps) {
       className={`flex flex-row gap-1 rounded-lg bg-white ${player.playerId === playerId && "bg-green-300!"} p-3 shadow-md`}
     >
       <div className="avatar flex-1">
-        <div className="size-20 rounded-full">
-          <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+        <div className="indicator overflow-visible">
+          <span className="indicator-item indicator-bottom indicator-center badge badge-primary z-10">
+            {player.score}
+          </span>
+          {/* This wrapper controls the round shape */}
+          <div className="h-20 w-20 overflow-hidden rounded-full">
+            <img
+              src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+              alt="avatar"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </div>
-      {/* //TODO fix text overflow */}
-      <section className="relative flex-2">
+      <section className="relative flex-2 overflow-hidden">
         <h2 className="text-lg font-bold">{player.name}</h2>
-        <p className="text-gray-600">{player.score}</p>
-        <p className="line-clamp-3 truncate font-black text-gray-500">
-          {lastMessage}
+        <p className="line-clamp-3 overflow-hidden font-black text-ellipsis text-gray-500">
+          {player.status === PlayerStatus.answer_correct
+            ? "CORRECTED✅"
+            : lastMessage}
         </p>
       </section>
     </div>

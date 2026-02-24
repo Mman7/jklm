@@ -39,9 +39,9 @@ export function getRandomQuestions(count: number = 10) {
 function generateCountTime() {
   const now = new Date();
   // Set the countdown to 5 minutes from now
-  const countTime = new Date(now.getTime() + 5 * 60 * 1000);
+  // const countTime = new Date(now.getTime() + 5 * 60 * 1000);
   // // Set the countdown to 30 seconds from now
-  // const countTime = new Date(now.getTime() + 30 * 1000);
+  const countTime = new Date(now.getTime() + 10 * 1000);
   return countTime;
 }
 
@@ -72,6 +72,7 @@ export async function findAnswer(hash: string): Promise<string> {
   return parseFile[hash];
 }
 
+//TODO fix weird bug when sometimes answer cant be parsed correctly, maybe need to check if the hash exist in parseFile or not before return answer
 export async function AnswerComparator(
   answerInStore: string,
   submitAnswer: string,
@@ -80,11 +81,15 @@ export async function AnswerComparator(
     return false; // Prevent empty or whitespace-only answers
   }
 
-  const normalize = (str: string) =>
-    str.toLowerCase().trim().replace(/\s+/g, " "); // normalize multiple spaces
+  const normalizedStore = answerInStore.trim().toLowerCase();
+  const normalizedSubmit = submitAnswer.trim().toLowerCase();
 
-  const normalizedStore = normalize(answerInStore);
-  const normalizedSubmit = normalize(submitAnswer);
+  // Check exact match
+  if (normalizedStore === normalizedSubmit) {
+    return true;
+  }
 
-  return normalizedStore.includes(normalizedSubmit);
+  // Split submit answer by space and check if any part matches store answer
+  const submitParts = normalizedSubmit.split(" ");
+  return submitParts.includes(normalizedStore);
 }
