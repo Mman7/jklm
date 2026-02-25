@@ -1,56 +1,47 @@
 import { useEffect, useRef, useState } from "react";
 import useGame from "../zustands/useGameStore";
 
-export default function useCountdown(endTimeMs: number | null) {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+export default function useTimer(endTimeMs: number | null) {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { setTimer } = useGame();
 
-  const calculateTimeLeft = () => {
-    // Protect against invalid end time
-    if (!endTimeMs) {
+  const calculateTimeLeft = (targetEndTimeMs: number | null) => {
+    if (!targetEndTimeMs) {
       return {
         totalMs: 0,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
         isExpired: false,
       };
     }
-    const diff = endTimeMs - Date.now();
-
-    if (diff <= 0) {
-      return {
-        totalMs: 0,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        isExpired: true,
-      };
-    }
-
-    const totalSeconds = Math.floor(diff / 1000);
+    const diff = targetEndTimeMs - Date.now();
 
     return {
-      totalMs: diff,
-      days: Math.floor(totalSeconds / (60 * 60 * 24)),
-      hours: Math.floor((totalSeconds / (60 * 60)) % 24),
-      minutes: Math.floor((totalSeconds / 60) % 60),
-      seconds: totalSeconds % 60,
-      isExpired: false,
+      totalMs: Math.max(diff, 0),
+      isExpired: diff <= 0,
     };
   };
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-  useEffect(() => {
-    setTimer(timeLeft);
-  }, [timeLeft]);
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(endTimeMs));
 
   useEffect(() => {
+    setTimer(timeLeft.totalMs);
+  }, [timeLeft.totalMs, setTimer]);
+
+  useEffect(() => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (!endTimeMs) {
+      setTimeLeft({ totalMs: 0, isExpired: false });
+      return;
+    }
+
+    setTimeLeft(calculateTimeLeft(endTimeMs));
+
     intervalRef.current = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
+      setTimeLeft(calculateTimeLeft(endTimeMs));
+    }, 100); // Adjust interval as needed for ms precision
 
     return () => {
       if (intervalRef.current !== null) {

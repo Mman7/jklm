@@ -1,40 +1,42 @@
 import { useEffect, useRef } from "react";
-import useGame from "../zustands/useGameStore";
 import useQuestion from "../zustands/useQuestionStore";
 import useTimer from "../hooks/useTimer";
-import useGameController from "../hooks/useGameController";
 import useShowAnswer from "../zustands/useShowAnswerStore";
 
 export default function Timer() {
-  const { showPicture } = useGame();
   const { currentQuestion } = useQuestion();
-  const { handleGoToNextQuestion } = useGameController();
-  const { showAnswer } = useShowAnswer();
+  const { showAnswer, setShowAnswer } = useShowAnswer();
 
-  const timeLeft = useTimer(
-    showPicture && !showAnswer ? currentQuestion?.challenge.end_time || 0 : 0,
-  );
+  const timeLeft = useTimer(currentQuestion?.challenge.end_time ?? null);
 
   // Ref to track previous expired state
   const prevExpiredRef = useRef(false);
 
   useEffect(() => {
-    if (!currentQuestion || showAnswer) return;
+    setShowAnswer(false);
+    prevExpiredRef.current = false;
+  }, [currentQuestion?.challenge.hash]);
 
-    if (timeLeft.isExpired && !prevExpiredRef.current && showPicture) {
-      handleGoToNextQuestion();
+  useEffect(() => {
+    if (showAnswer) return;
+
+    if (timeLeft.isExpired && !prevExpiredRef.current) {
+      prevExpiredRef.current = true;
+      timeLeft.isExpired = false;
+      setShowAnswer(true);
     }
+  }, [setShowAnswer, showAnswer, timeLeft.isExpired]);
 
-    prevExpiredRef.current = timeLeft.isExpired;
-  }, [timeLeft.isExpired, showPicture, currentQuestion, showAnswer]);
+  const minutes = Math.floor(timeLeft.totalMs / 60000);
+  const seconds = Math.floor((timeLeft.totalMs % 60000) / 1000);
 
   return (
     <div>
-      {timeLeft.isExpired ? (
-        <span>Time's up!</span>
+      {showAnswer || timeLeft.isExpired ? (
+        <span>0:00 s</span>
       ) : (
         <span>
-          {timeLeft.minutes}:{timeLeft.seconds} s
+          {minutes}:{seconds.toString().padStart(2, "0")} s
         </span>
       )}
     </div>
