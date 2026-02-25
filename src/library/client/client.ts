@@ -1,8 +1,12 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
+import { EventRequestBody } from "@/src/app/api/events/route";
 import { CreateRoomRequest } from "@/src/app/api/room/route";
+import { ServerEvent } from "@/src/types/enum/server_events";
+import { Question, QuestionHashOnly } from "@/src/types/question";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
 import { TokenRequest } from "ably";
+import ky from "ky";
 
 export const hostRoom = async ({
   playerId,
@@ -10,21 +14,7 @@ export const hostRoom = async ({
   playerId: string;
 }): Promise<Room> => {
   const req: CreateRoomRequest = { playerId: playerId };
-  return new Promise((resolve, reject) => {
-    // try to create room
-    fetch(`/api/room`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req),
-    }).then((res) => {
-      res.json().then((data: Room) => {
-        if (res.status === 201) resolve(data);
-        else reject(new Error("Failed to create room"));
-      });
-    });
-  });
+  return ky.post("/api/room", { json: req }).json<Room>();
 };
 
 export const generateNameWithUUID = (name: string): string => {
@@ -34,45 +24,25 @@ export const generateNameWithUUID = (name: string): string => {
 export const getUserToken = ({
   playerId,
 }: createTokenRequest): Promise<TokenRequest> => {
-  return new Promise((resolve, reject) => {
-    fetch("/api/ably-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(playerId),
-    }).then((res) => {
-      if (res.status === 200) {
-        res.json().then((data: TokenRequest) => {
-          resolve(data);
-        });
-      } else {
-        reject(new Error("Failed to get user token"));
-      }
-    });
-  });
+  return ky.post("/api/ably-token", { json: playerId }).json<TokenRequest>();
 };
 
 export const getRoom = (roomId: string): Promise<Room> => {
-  return new Promise((resolve, reject) => {
-    fetch(`/api/room/${roomId}`)
-      .then((res) => {
-        if (res.status !== 200) reject(new Error("Room not found"));
-        if (res.status === 200)
-          res.json().then((data: string) => resolve(JSON.parse(data)));
-      })
-      // network error
-      .catch((err) => reject(err));
-  });
+  return ky.get(`/api/room/${roomId}`).json<Room>();
 };
 
 export const getAllRooms = (): Promise<Room[]> => {
-  return new Promise((resolve, reject) => {
-    fetch("/api/room/all")
-      .then((res) => res.json())
-      .then((data: []) => {
-        const newList = data.map((item) => JSON.parse(item));
-        resolve(newList);
-      })
-      // network error
-      .catch((err) => reject(err));
-  });
+  return ky.get("/api/room/all").json<Room[]>();
+};
+
+export const noticeServerNewQuestion = (roomId: string) => {
+  const req: EventRequestBody = {
+    type: ServerEvent.newQuestion,
+    roomId,
+  };
+  return ky.post("/api/events", { json: req });
+};
+
+export const getQuestion = (question: QuestionHashOnly): Promise<Question> => {
+  return ky.get(`/api/question/${question.hash}`).json<Question>();
 };

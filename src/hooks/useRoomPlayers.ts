@@ -34,20 +34,20 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
     // check is all player answer correctly
     if (players.length === 0) {
       setIsAllPlayerCorrected(false);
+      setIsAllPlayerFetched(false);
       return;
     }
+
     const allCorrected = players.every(
       (player) => player.status === PlayerStatus.answer_correct,
     );
-    if (allCorrected) {
-      setIsAllPlayerCorrected(allCorrected);
-    }
+    setIsAllPlayerCorrected(allCorrected);
+
     // check if all player status is ready
     const allReady = players.every(
       (player) => player.status === PlayerStatus.fetched,
     );
-
-    if (allReady) setIsAllPlayerFetched(allReady);
+    setIsAllPlayerFetched(allReady);
   }, [players]);
 
   return { players, isAllPlayerCorrected, isAllPlayerFetched };

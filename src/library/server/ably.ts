@@ -1,5 +1,6 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
 import { ServerEvent } from "@/src/types/enum/server_events";
+import { QuestionHashOnly } from "@/src/types/question";
 import Ably, { TokenRequest } from "ably";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env" });
@@ -31,6 +32,18 @@ export function alertPlayerCorrect(playerId: string, roomId: string) {
   channel.publish("events", {
     text: ServerEvent.PlayerAnsweredCorrectly,
     playerId,
+    timestamp: Date.now(),
+  });
+}
+
+export function noticeUserNewQuestion(
+  roomId: string,
+  questionHash: QuestionHashOnly[],
+) {
+  const channel = ably.channels.get(`room-${roomId}`);
+  channel.publish("events", {
+    text: ServerEvent.newQuestion,
+    questionHash,
     timestamp: Date.now(),
   });
 }

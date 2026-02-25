@@ -9,9 +9,11 @@ interface QuestionStore {
   currentQuestionHash: QuestionHashOnly | null;
   setCurrentQuestionHash: (question: QuestionHashOnly | null) => void;
   goToNextQuestion: () => void;
+  currentIndexInList: number;
 }
 
 const useQuestionStore = create<QuestionStore>((set) => ({
+  currentIndexInList: 0,
   questionList: [],
   setQuestionList: (questions: QuestionHashOnly[]) =>
     set({ questionList: questions }),
@@ -31,11 +33,15 @@ const useQuestionStore = create<QuestionStore>((set) => ({
       const nextIndex = currentIndex + 1;
 
       if (nextIndex < state.questionList.length) {
-        return { currentQuestionHash: state.questionList[nextIndex] };
+        return {
+          currentQuestionHash: state.questionList[nextIndex],
+          currentIndexInList: nextIndex,
+        };
       }
 
       return {
         currentQuestionHash: null,
+        currentIndexInList: 0,
       };
     }),
 }));
@@ -56,6 +62,7 @@ export default function useQuestion() {
     currentQuestionHash,
     setCurrentQuestionHash,
     goToNextQuestion,
+    currentIndexInList,
   } = useQuestionStore();
 
   return {
@@ -66,5 +73,6 @@ export default function useQuestion() {
     currentQuestionHash,
     setCurrentQuestionHash,
     goToNextQuestion,
+    currentIndexInList,
   };
 }

@@ -37,18 +37,13 @@ export function getRandomQuestions(count: number = 10) {
 }
 
 function generateCountTime() {
-  const now = new Date();
-  // Set the countdown to 5 minutes from now
-  // const countTime = new Date(now.getTime() + 5 * 60 * 1000);
-  // // Set the countdown to 30 seconds from now
-  const countTime = new Date(now.getTime() + 10 * 1000);
-  return countTime;
+  // Set end time to 10 seconds from now
+  return Date.now() + 10_000;
 }
 
 export function getQuestion(questionHash: string): Question | null {
   const question = questionHashMap.get(questionHash);
-  // For testing, set the end_time to 5 minutes from now
-  question!.challenge.end_time = generateCountTime().getTime();
+  question!.challenge.end_time = generateCountTime();
 
   // return question ? removeAnswerFromQuestion(question) : null;
   return question || null;

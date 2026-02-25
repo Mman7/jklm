@@ -1,44 +1,45 @@
-import useDataFetcher from "@/src/hooks/useDataFetcher";
+import useSWR from "swr";
 import { PlayerStatus } from "@/src/types/enum/player_status";
 import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useQuestion from "@/src/zustands/useQuestionStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect } from "react";
+import { getQuestion } from "@/src/library/client/client";
+import { Question } from "@/src/types/question";
 
 export default function ChallengeDisplayer() {
   const { showPicture } = useGame();
   const { currentQuestionHash, setCurrentQuestion } = useQuestion();
-  const { setUrl, data, isFetching } = useDataFetcher();
   const { setShowLoading } = useLoadingDialog();
   const { updatePlayerStats, player } = useRoom();
 
-  useEffect(() => {
-    if (!currentQuestionHash) return;
-    setUrl(`/api/question/${currentQuestionHash?.hash}`);
-  }, [currentQuestionHash]);
+  const { data, isLoading } = useSWR<Question>(
+    currentQuestionHash,
+    getQuestion,
+  );
 
   useEffect(() => {
     if (data) {
       setCurrentQuestion(data);
-      console.log(data);
     }
-  }, [data]);
+  }, [data, setCurrentQuestion]);
 
   useEffect(() => {
-    if (isFetching) {
-      setShowLoading(true);
-    } else {
-      setShowLoading(false);
-      if (!player) return;
-      updatePlayerStats({
-        ...player,
-        status: PlayerStatus.fetched,
-      });
-    }
-  }, [isFetching]);
+    setShowLoading(isLoading);
+  }, [isLoading, setShowLoading]);
 
-  // return loading
+  useEffect(() => {
+    // If player has fetched the question, update status to fetched
+    if (isLoading || !data || !player) return;
+    if (player.status === PlayerStatus.fetched) return;
+
+    updatePlayerStats({
+      ...player,
+      status: PlayerStatus.fetched,
+    });
+  }, [data, isLoading, player, updatePlayerStats]);
+
   if (!data)
     return (
       <div className="flex h-full flex-col items-center justify-center p-6">
@@ -59,14 +60,23 @@ export default function ChallengeDisplayer() {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6">
         <h1 className="mb-2 text-xl font-bold">{data?.challenge.prompt}</h1>
+        <h1>{data?.challenge.text}</h1>
         <figure className="rounded-2xl">
-          {showPicture && (
-            <img
-              className="max-w-100"
-              src={`data:${data?.challenge.image?.type};base64,${data?.challenge.image?.base64}`}
-              alt={data?.details}
-            />
-          )}
+          {showPicture &&
+            data?.challenge.image &&
+            (data.challenge.image.type === "image/svg+xml" ? (
+              <svg
+                dangerouslySetInnerHTML={{
+                  __html: atob(data.challenge.image.base64),
+                }}
+              />
+            ) : (
+              <img
+                className="max-w-100"
+                src={`data:${data.challenge.image.type};base64,${data.challenge.image.base64}`}
+                alt={data?.details}
+              />
+            ))}
         </figure>
       </div>
     );

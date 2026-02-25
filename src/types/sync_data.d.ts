@@ -5,9 +5,5 @@ export interface SyncData {
 
 export interface TimerData {
   totalMs: number;
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
   isExpired: boolean;
 }

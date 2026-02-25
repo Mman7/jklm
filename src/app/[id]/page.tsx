@@ -4,7 +4,6 @@ import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
 import TimerBar from "@/src/components/Timer";
-import useDataSyncManager from "@/src/hooks/useDataSyncManager";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useMounted from "@/src/hooks/useMounted";
 import useRoomEvent from "@/src/hooks/useRoomEvent";
@@ -20,10 +19,19 @@ import useQuestion from "@/src/zustands/useQuestionStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useRoomInitializer from "@/src/hooks/useRoomInitializer";
 import useShowAnswer from "@/src/zustands/useShowAnswerStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
+import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
+import { noticeServerNewQuestion } from "@/src/library/client/client";
+import useSWR from "swr";
+
+const checkIsFirstPlayer = (players: any[], playerId: string) => {
+  if (players.length === 0) return false;
+  const sortedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
+  return sortedPlayers[0].playerId === playerId;
+};
 
 export default function GamePage() {
   const { playerId, name } = useAuth();
@@ -33,10 +41,14 @@ export default function GamePage() {
   const mounted = useMounted();
   const { isUserValid } = useUserValid();
   const { setShowNameDialog } = useNameDialog();
-  const { setCurrentQuestionHash } = useQuestion();
-  const { sendReqSync } = useDataSyncManager();
+  const { setCurrentQuestionHash, currentIndexInList, questionList } =
+    useQuestion();
   const { showAnswer } = useShowAnswer();
-
+  const { players } = useRoomPlayers(channel);
+  const [enabled, setEnabled] = useState(false);
+  const { data, isLoading } = useSWR(enabled ? "/api/user" : null, () =>
+    noticeServerNewQuestion(roomId),
+  );
   // initialize channel
   useLastChat();
   useRoomEvent();
@@ -73,12 +85,24 @@ export default function GamePage() {
       status: PlayerStatus.waiting,
     });
     setCurrentQuestionHash(room.questionList[0] || null);
-    sendReqSync();
+    //TODO request sync data when room info is loaded, to make sure all player have the same question and timer
+    // sendReqSync();
   }, [room]);
 
   useEffect(() => {
     if (player) enterChannel(player);
   }, [player]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    // check is last question, if yes fetch new question list
+    if (currentIndexInList === questionList.length - 1) {
+      // fetch new question list
+      if (checkIsFirstPlayer(players, playerId)) {
+        setEnabled(true);
+      }
+    }
+  }, [currentIndexInList]);
 
   if (!channel) return <div>Loading...</div>;
 

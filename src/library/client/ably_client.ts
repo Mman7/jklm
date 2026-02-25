@@ -52,8 +52,15 @@ export function subscribeToEvents(
     playerId: string;
   }) => void,
 ) {
-  if (!channel) return;
-  channel.subscribe("events", (message) => onMessage(message.data));
+  if (!channel) return () => {};
+
+  const handler = (message: Ably.Message) => onMessage(message.data);
+  channel.subscribe("events", handler);
+
+  return () => {
+    if (!channel) return;
+    channel.unsubscribe("events", handler);
+  };
 }
 
 export function hasJoined(channelName: string) {
@@ -121,7 +128,14 @@ export function sendSyncRequest() {
 
 // subscribe to sync data
 export function subscribeToSync(onSync: (syncData: any) => void) {
-  if (!channel) return;
+  if (!channel) return () => {};
   console.log("sub to sync");
-  channel.subscribe("sync", (message) => onSync(message.data));
+
+  const handler = (message: Ably.Message) => onSync(message.data);
+  channel.subscribe("sync", handler);
+
+  return () => {
+    if (!channel) return;
+    channel.unsubscribe("sync", handler);
+  };
 }

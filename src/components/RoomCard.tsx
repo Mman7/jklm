@@ -20,7 +20,7 @@ export default function RoomCard({ room }: { room: Room }) {
     }
     setShowLoading(true);
 
-    await getRoom(room.id)
+    getRoom(room.id)
       .then((room: Room) => {
         // room found, navigate to room
         setRoom(room);
