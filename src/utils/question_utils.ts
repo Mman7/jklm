@@ -6,8 +6,8 @@ import { Challenge, Question, QuestionHashOnly } from "../types/question";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const dirPath = join(__dirname, "../../data/popsauces");
-const filePath = path.join(__dirname, "../../data/answers_pairs.json");
+const dirPath = join(__dirname, "../../public/data/popsauces");
+const filePath = path.join(__dirname, "../../public/data/answers_pairs.json");
 const file = readFileSync(filePath, "utf-8");
 const parseFile = JSON.parse(file);
 
