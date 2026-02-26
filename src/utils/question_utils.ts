@@ -49,10 +49,10 @@ export function getQuestion(questionHash: string): Question | null {
   return question || null;
 }
 
-function removeAnswerFromQuestion(question: Question): Question {
-  question.answer = "";
-  return question;
-}
+// function removeAnswerFromQuestion(question: Question): Question {
+//   question.answer = "";
+//   return question;
+// }
 
 function convertToHashOnly(question: Question): QuestionHashOnly {
   return { hash: question.challenge.hash };
