@@ -1,38 +1,60 @@
 import { readdirSync, readFileSync } from "fs";
-import path from "path"; // Optional, but useful for path manipulation
-import { join } from "path";
+import path from "path";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
 
-// const __filename = fileURLToPath(import.meta.url);
-// process.env.NEXT_PUBLIC_BASE_URL
-// const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/data/answers_pairs.json`)
-// options 3 move data to src folder
-// const dirPath = join(__dirname, "../data/popsauces");
-const dirPath = path.join(process.cwd(), "src/data/popsauces");
-const filePath = path.join(process.cwd(), "src/data/answers_pairs.json");
+const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
+const indexPath = path.join(process.cwd(), "public/data/questions_paths.json");
+const dataDir = path.join(process.cwd(), "public/data");
 
-const file = readFileSync(filePath, "utf-8");
-const parseFile = JSON.parse(file);
+const answersFile = readFileSync(answersPath, "utf-8");
+const parseFile = JSON.parse(answersFile);
 
-const questionHashMap = new Map<string, Question>();
-const files = readdirSync(dirPath);
+const questionPathMap = loadQuestionPathMap();
 
-files.forEach((file) => {
-  const filePath = join(dirPath, file);
-  const fileContent = readFileSync(filePath, "utf-8");
-  const question = JSON.parse(fileContent) as Question;
-  questionHashMap.set(question.challenge.hash, question);
-});
+const questionCache = new Map<string, Question>();
+
+function loadQuestionPathMap(): Record<string, string> {
+  try {
+    const indexFile = readFileSync(indexPath, "utf-8");
+    return JSON.parse(indexFile) as Record<string, string>;
+  } catch {
+    const fallbackQuestionsDir = path.join(dataDir, "popsauces");
+
+    try {
+      const files = readdirSync(fallbackQuestionsDir).filter((fileName) =>
+        fileName.endsWith(".json"),
+      );
+
+      const fallbackMap: Record<string, string> = {};
+      for (const fileName of files) {
+        const hash = path.parse(fileName).name;
+        fallbackMap[hash] = `popsauces/${fileName}`;
+      }
+
+      if (Object.keys(fallbackMap).length === 0) {
+        throw new Error();
+      }
+
+      console.warn(
+        "[question_utils] questions_paths.json not found. Using fallback question map from public/data/popsauces. Run `npm run prebuild` to regenerate the index.",
+      );
+      return fallbackMap;
+    } catch {
+      throw new Error(
+        "[question_utils] Missing public/data/questions_paths.json and unable to build fallback map. Run `npm run prebuild` before starting the app.",
+      );
+    }
+  }
+}
 
 export function getRandomQuestions(count: number = 10) {
-  const hashes = Array.from(questionHashMap.keys());
+  const hashes = Object.keys(questionPathMap);
   const questions: QuestionHashOnly[] = [];
 
   for (let i = 0; i < count; i++) {
     const randomHash = hashes[Math.floor(Math.random() * hashes.length)];
-    const question = questionHashMap.get(randomHash);
-    if (question) {
-      questions.push(convertToHashOnly(question));
+    if (randomHash) {
+      questions.push({ hash: randomHash });
     }
   }
 
@@ -45,11 +67,15 @@ function generateCountTime() {
 }
 
 export function getQuestion(questionHash: string): Question | null {
-  const question = questionHashMap.get(questionHash);
-  question!.challenge.end_time = generateCountTime();
+  const question = readQuestionByHash(questionHash);
+  if (!question) {
+    return null;
+  }
+
+  question.challenge.end_time = generateCountTime();
 
   // return question ? removeAnswerFromQuestion(question) : null;
-  return question || null;
+  return question;
 }
 
 // function removeAnswerFromQuestion(question: Question): Question {
@@ -57,20 +83,33 @@ export function getQuestion(questionHash: string): Question | null {
 //   return question;
 // }
 
-function convertToHashOnly(question: Question): QuestionHashOnly {
-  return { hash: question.challenge.hash };
+export async function getChallenge(hash: string): Promise<null | Challenge> {
+  const question = readQuestionByHash(hash);
+  return question ? question.challenge : null;
 }
 
-export async function getChallenge(hash: string): Promise<null | Challenge> {
-  const question = questionHashMap.get(hash);
-  return question ? question.challenge : null;
+function readQuestionByHash(hash: string): Question | null {
+  const cachedQuestion = questionCache.get(hash);
+  if (cachedQuestion) {
+    return cachedQuestion;
+  }
+
+  const relativePath = questionPathMap[hash];
+  if (!relativePath) {
+    return null;
+  }
+
+  const absolutePath = path.join(dataDir, relativePath);
+  const fileContent = readFileSync(absolutePath, "utf-8");
+  const parsedQuestion = JSON.parse(fileContent) as Question;
+  questionCache.set(hash, parsedQuestion);
+  return parsedQuestion;
 }
 
 export async function findAnswer(hash: string): Promise<string> {
   return parseFile[hash];
 }
 
-//TODO fix weird bug when sometimes answer cant be parsed correctly, maybe need to check if the hash exist in parseFile or not before return answer
 export async function AnswerComparator(
   answerInStore: string,
   submitAnswer: string,

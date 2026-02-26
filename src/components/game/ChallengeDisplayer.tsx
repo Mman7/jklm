@@ -66,16 +66,17 @@ export default function ChallengeDisplayer() {
       )}
 
       {hasImage && showPicture && (
-        <figure className="rounded-2xl">
+        <figure className="max-w-full overflow-hidden rounded-2xl">
           {data.challenge.image!.type === "image/svg+xml" ? (
             <svg
+              className="h-auto max-h-96 w-full"
               dangerouslySetInnerHTML={{
                 __html: atob(data.challenge.image!.base64),
               }}
             />
           ) : (
             <img
-              className="max-w-full"
+              className="h-auto max-h-96 max-w-full object-contain"
               src={`data:${data.challenge.image!.type};base64,${data.challenge.image!.base64}`}
               alt={data.details}
             />
