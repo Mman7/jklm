@@ -1,10 +1,9 @@
-import { readdirSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import path from "path";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
 
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
 const indexPath = path.join(process.cwd(), "public/data/questions_paths.json");
-const dataDir = path.join(process.cwd(), "public/data");
 
 const answersFile = readFileSync(answersPath, "utf-8");
 const parseFile = JSON.parse(answersFile);
@@ -18,32 +17,9 @@ function loadQuestionPathMap(): Record<string, string> {
     const indexFile = readFileSync(indexPath, "utf-8");
     return JSON.parse(indexFile) as Record<string, string>;
   } catch {
-    const fallbackQuestionsDir = path.join(dataDir, "popsauces");
-
-    try {
-      const files = readdirSync(fallbackQuestionsDir).filter((fileName) =>
-        fileName.endsWith(".json"),
-      );
-
-      const fallbackMap: Record<string, string> = {};
-      for (const fileName of files) {
-        const hash = path.parse(fileName).name;
-        fallbackMap[hash] = `popsauces/${fileName}`;
-      }
-
-      if (Object.keys(fallbackMap).length === 0) {
-        throw new Error();
-      }
-
-      console.warn(
-        "[question_utils] questions_paths.json not found. Using fallback question map from public/data/popsauces. Run `npm run prebuild` to regenerate the index.",
-      );
-      return fallbackMap;
-    } catch {
-      throw new Error(
-        "[question_utils] Missing public/data/questions_paths.json and unable to build fallback map. Run `npm run prebuild` before starting the app.",
-      );
-    }
+    throw new Error(
+      "[question_utils] Missing public/data/questions_paths.json. Run `npm run prebuild` before starting the app.",
+    );
   }
 }
 
@@ -66,8 +42,10 @@ function generateCountTime() {
   return Date.now() + 10_000;
 }
 
-export function getQuestion(questionHash: string): Question | null {
-  const question = readQuestionByHash(questionHash);
+export async function getQuestion(
+  questionHash: string,
+): Promise<Question | null> {
+  const question = await readQuestionByHash(questionHash);
   if (!question) {
     return null;
   }
@@ -84,11 +62,11 @@ export function getQuestion(questionHash: string): Question | null {
 // }
 
 export async function getChallenge(hash: string): Promise<null | Challenge> {
-  const question = readQuestionByHash(hash);
+  const question = await readQuestionByHash(hash);
   return question ? question.challenge : null;
 }
 
-function readQuestionByHash(hash: string): Question | null {
+async function readQuestionByHash(hash: string): Promise<Question | null> {
   const cachedQuestion = questionCache.get(hash);
   if (cachedQuestion) {
     return cachedQuestion;
@@ -99,11 +77,25 @@ function readQuestionByHash(hash: string): Question | null {
     return null;
   }
 
-  const absolutePath = path.join(dataDir, relativePath);
-  const fileContent = readFileSync(absolutePath, "utf-8");
-  const parsedQuestion = JSON.parse(fileContent) as Question;
+  const response = await fetch(`${getBaseUrl()}/data/${relativePath}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    return null;
+  }
+
+  const parsedQuestion = (await response.json()) as Question;
   questionCache.set(hash, parsedQuestion);
   return parsedQuestion;
+}
+
+function getBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.URL ||
+    process.env.DEPLOY_PRIME_URL ||
+    `http://127.0.0.1:${process.env.PORT || "3000"}`
+  );
 }
 
 export async function findAnswer(hash: string): Promise<string> {
