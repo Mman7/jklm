@@ -19,7 +19,7 @@ export function useLastChat() {
     return () => {
       unsubscribe?.();
     };
-  }, [channel, lastChat]);
+  }, [channel, setLastChat]);
 
   return { lastChat, setLastChat };
 }

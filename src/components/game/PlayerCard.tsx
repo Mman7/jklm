@@ -1,7 +1,7 @@
-import { useLastChat } from "@/src/hooks/useLastChat";
 import { PlayerStatus } from "@/src/types/enum/player_status";
 import { Player } from "@/src/types/player";
 import useAuth from "@/src/zustands/useAuthStore";
+import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect, useState } from "react";
 
 interface PlayerCardProps {
@@ -9,7 +9,7 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const { lastChat } = useLastChat();
+  const { lastChat } = useRoom();
   const { playerId } = useAuth();
   const [lastMessage, setLastMessage] = useState("");
 

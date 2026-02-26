@@ -16,18 +16,40 @@ export default function useRoomEvent() {
   const params = useParams();
   const roomId = typeof params.id === "string" ? params.id : "";
   const { channel, updatePlayerStats, player } = useRoom();
-  const { isAllPlayerCorrected, isAllPlayerFetched } = useRoomPlayers(channel);
+  const { isAllPlayerCorrected, isAllPlayerFetched, players } =
+    useRoomPlayers(channel);
   const { showPicture } = useGameController();
-  const { setQuestionList, setCurrentQuestionHash, setCurrentQuestion } =
-    useQuestion();
+  const {
+    setQuestionList,
+    setCurrentQuestionHash,
+    setCurrentQuestion,
+    currentQuestionHash,
+  } = useQuestion();
   const { setShowAnswer } = useShowAnswer();
   const playerRef = useRef(player);
   const prevAllCorrectedRef = useRef(false);
   const prevAllFetchedRef = useRef(false);
+  const seenFetchingForQuestionRef = useRef(false);
 
   useEffect(() => {
     playerRef.current = player;
   }, [player]);
+
+  useEffect(() => {
+    seenFetchingForQuestionRef.current = false;
+    prevAllCorrectedRef.current = false;
+    prevAllFetchedRef.current = false;
+  }, [currentQuestionHash?.hash]);
+
+  useEffect(() => {
+    if (
+      players.some(
+        (roomPlayer) => roomPlayer.fetchedStatus === FetchedStatus.fetching,
+      )
+    ) {
+      seenFetchingForQuestionRef.current = true;
+    }
+  }, [players]);
 
   useEffect(() => {
     if (!channel) return;
@@ -104,12 +126,17 @@ export default function useRoomEvent() {
 
   // Check if all players have answered correctly or fetched the question
   useEffect(() => {
-    if (isAllPlayerCorrected && !prevAllCorrectedRef.current) {
+    if (
+      seenFetchingForQuestionRef.current &&
+      isAllPlayerFetched &&
+      isAllPlayerCorrected &&
+      !prevAllCorrectedRef.current
+    ) {
       setShowAnswer(true);
     }
 
     prevAllCorrectedRef.current = isAllPlayerCorrected;
-  }, [isAllPlayerCorrected, setShowAnswer]);
+  }, [isAllPlayerCorrected, isAllPlayerFetched, setShowAnswer]);
 
   // check is all player fetched the question, if yes show picture
   useEffect(() => {
