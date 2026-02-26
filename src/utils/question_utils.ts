@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync } from "fs";
 import path from "path"; // Optional, but useful for path manipulation
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
 
 // const __filename = fileURLToPath(import.meta.url);
