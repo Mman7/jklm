@@ -3,14 +3,15 @@ import path from "path"; // Optional, but useful for path manipulation
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
-        
+
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 // process.env.NEXT_PUBLIC_BASE_URL
 // const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/data/answers_pairs.json`)
 // options 3 move data to src folder
-const dirPath = join(__dirname, "../data/popsauces");
-const filePath = path.join(__dirname, "../data/answers_pairs.json");
+// const dirPath = join(__dirname, "../data/popsauces");
+const dirPath = path.join(process.cwd(), "src/data/popsauces");
+const filePath = path.join(process.cwd(), "src/data/answers_pairs.json");
+
 const file = readFileSync(filePath, "utf-8");
 const parseFile = JSON.parse(file);
 
