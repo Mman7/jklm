@@ -2,7 +2,9 @@
   "name": "jklm",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "prebuild": "node scripts/build-questions.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
