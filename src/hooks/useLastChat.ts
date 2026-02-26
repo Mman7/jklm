@@ -6,14 +6,20 @@ import useRoom from "../zustands/useRoomStore";
 
 export function useLastChat() {
   const { setLastChat, lastChat, channel } = useRoom();
+
   useEffect(() => {
     if (!channel) return;
-    subscribeToMessages((msg) => {
+
+    const unsubscribe = subscribeToMessages((msg) => {
       // update last chat
       console.log(msg);
       setLastChat({ message: msg.text, senderId: msg.playerId });
     });
-  }, [channel]);
 
-  return { lastChat };
+    return () => {
+      unsubscribe?.();
+    };
+  }, [channel, lastChat]);
+
+  return { lastChat, setLastChat };
 }

@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { PlayerStatus } from "@/src/types/enum/player_status";
+import { FetchedStatus } from "@/src/types/enum/player_status";
 import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useQuestion from "@/src/zustands/useQuestionStore";
@@ -17,11 +17,16 @@ export default function ChallengeDisplayer() {
   const { data, isLoading } = useSWR<Question>(
     currentQuestionHash,
     getQuestion,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 
   useEffect(() => {
     if (data) {
       setCurrentQuestion(data);
+      console.log(data);
     }
   }, [data, setCurrentQuestion]);
 
@@ -32,11 +37,11 @@ export default function ChallengeDisplayer() {
   useEffect(() => {
     // If player has fetched the question, update status to fetched
     if (isLoading || !data || !player) return;
-    if (player.status === PlayerStatus.fetched) return;
+    if (player.fetchedStatus === FetchedStatus.fetched) return;
 
     updatePlayerStats({
       ...player,
-      status: PlayerStatus.fetched,
+      fetchedStatus: FetchedStatus.fetched,
     });
   }, [data, isLoading, player, updatePlayerStats]);
 
@@ -47,38 +52,42 @@ export default function ChallengeDisplayer() {
       </div>
     );
 
-  if (data && data?.challenge.text !== null)
-    return (
-      <div className="flex h-full flex-col items-center justify-center p-6">
-        <h1 className="mb-2 font-bold">{data?.challenge.prompt}</h1>
+  const hasText = !!data.challenge.text;
+  const hasImage = !!data.challenge.image;
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 p-6">
+      <h1 className="mb-2 text-xl font-bold">{data.challenge.prompt}</h1>
+
+      {hasText && (
         <section className="rounded-2xl bg-gray-200 p-6">
-          <q>{data?.challenge.text}</q>
+          <q>{data.challenge.text}</q>
         </section>
-      </div>
-    );
-  else {
-    return (
-      <div className="flex h-full flex-col items-center justify-center p-6">
-        <h1 className="mb-2 text-xl font-bold">{data?.challenge.prompt}</h1>
-        <h1>{data?.challenge.text}</h1>
+      )}
+
+      {hasImage && showPicture && (
         <figure className="rounded-2xl">
-          {showPicture &&
-            data?.challenge.image &&
-            (data.challenge.image.type === "image/svg+xml" ? (
-              <svg
-                dangerouslySetInnerHTML={{
-                  __html: atob(data.challenge.image.base64),
-                }}
-              />
-            ) : (
-              <img
-                className="max-w-100"
-                src={`data:${data.challenge.image.type};base64,${data.challenge.image.base64}`}
-                alt={data?.details}
-              />
-            ))}
+          {data.challenge.image!.type === "image/svg+xml" ? (
+            <svg
+              dangerouslySetInnerHTML={{
+                __html: atob(data.challenge.image!.base64),
+              }}
+            />
+          ) : (
+            <img
+              className="max-w-full"
+              src={`data:${data.challenge.image!.type};base64,${data.challenge.image!.base64}`}
+              alt={data.details}
+            />
+          )}
         </figure>
-      </div>
-    );
-  }
+      )}
+
+      {hasImage && !showPicture && (
+        <p className="text-sm text-gray-600">
+          Image will appear when all players are ready.
+        </p>
+      )}
+    </div>
+  );
 }

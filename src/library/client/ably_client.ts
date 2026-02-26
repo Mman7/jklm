@@ -1,5 +1,5 @@
 import { Player } from "@/src/types/player";
-import { SyncData } from "@/src/types/sync_data";
+import { SyncData, SyncMessage } from "@/src/types/sync_data";
 import Ably from "ably";
 
 let ably: Ably.Realtime | undefined;
@@ -42,7 +42,12 @@ export function subscribeToMessages(
   }) => void,
 ) {
   if (!channel) return;
-  channel.subscribe("chats", (message) => onMessage(message.data));
+  const handler = (message: Ably.Message) => onMessage(message.data);
+  channel.subscribe("chats", handler);
+  return () => {
+    if (!channel) return;
+    channel.unsubscribe("chats", handler);
+  };
 }
 
 export function subscribeToEvents(
@@ -106,30 +111,49 @@ export async function getAllPlayers() {
 // update player stats to presence
 export async function ablyUpdatePlayerStats(playerProps: Player) {
   if (!channel) return;
-  await channel.presence.update((prev: any) => playerProps);
+  await channel.presence.update({
+    name: playerProps.name,
+    playerId: playerProps.playerId,
+    score: playerProps.score,
+    lastChat: playerProps.lastChat,
+    playerStatus: playerProps.playerStatus,
+    fetchedStatus: playerProps.fetchedStatus,
+  });
 }
 
 // SYNC DATA
 
 // send current question and timer to all players
-export function sendSyncData(syncData: SyncData) {
+export function sendSyncData({
+  requesterId,
+  senderId,
+  syncData,
+}: {
+  requesterId: string;
+  senderId: string;
+  syncData: SyncData;
+}) {
   if (!channel) return;
-  console.log("sendSync");
-  channel.publish("sync", syncData);
+  channel.publish("sync", {
+    type: "sync_data",
+    requesterId,
+    senderId,
+    payload: syncData,
+  } satisfies SyncMessage);
 }
 
 // send sync request to all players to fetch current question and timer
-export function sendSyncRequest() {
+export function sendSyncRequest(requesterId: string) {
   if (!channel) return;
-  console.log("send sync request");
-
-  channel.publish("sync", "sync_request");
+  channel.publish("sync", {
+    type: "sync_request",
+    requesterId,
+  } satisfies SyncMessage);
 }
 
 // subscribe to sync data
-export function subscribeToSync(onSync: (syncData: any) => void) {
+export function subscribeToSync(onSync: (syncData: SyncMessage) => void) {
   if (!channel) return () => {};
-  console.log("sub to sync");
 
   const handler = (message: Ably.Message) => onSync(message.data);
   channel.subscribe("sync", handler);

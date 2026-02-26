@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Ably from "ably";
-import { PlayerStatus } from "../types/enum/player_status";
+import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
+import { Player } from "../types/player";
 
 // * tracking players in room
 export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isAllPlayerCorrected, setIsAllPlayerCorrected] =
     useState<boolean>(false);
   const [isAllPlayerFetched, setIsAllPlayerFetched] = useState<boolean>(false);
@@ -13,7 +14,7 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
     if (!channel) return;
     const updatePlayers = async () => {
       const members = await channel.presence.get();
-      setPlayers(members.map((m: any) => m.data));
+      setPlayers(members.map((m) => m.data as Player));
     };
 
     updatePlayers();
@@ -39,13 +40,13 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
     }
 
     const allCorrected = players.every(
-      (player) => player.status === PlayerStatus.answer_correct,
+      (player) => player.playerStatus === PlayerStatus.answer_correct,
     );
     setIsAllPlayerCorrected(allCorrected);
 
     // check if all player status is ready
     const allReady = players.every(
-      (player) => player.status === PlayerStatus.fetched,
+      (player) => player.fetchedStatus === FetchedStatus.fetched,
     );
     setIsAllPlayerFetched(allReady);
   }, [players]);

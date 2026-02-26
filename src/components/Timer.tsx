@@ -2,12 +2,18 @@ import { useEffect, useRef } from "react";
 import useQuestion from "../zustands/useQuestionStore";
 import useTimer from "../hooks/useTimer";
 import useShowAnswer from "../zustands/useShowAnswerStore";
+import useGame from "../zustands/useGameStore";
 
 export default function Timer() {
   const { currentQuestion } = useQuestion();
   const { showAnswer, setShowAnswer } = useShowAnswer();
+  const { showPicture } = useGame();
+  const isImageNotReady = !!currentQuestion?.challenge.image && !showPicture;
 
-  const timeLeft = useTimer(currentQuestion?.challenge.end_time ?? null);
+  const timeLeft = useTimer(
+    currentQuestion?.challenge.end_time ?? null,
+    isImageNotReady,
+  );
 
   // Ref to track previous expired state
   const prevExpiredRef = useRef(false);

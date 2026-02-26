@@ -1,9 +1,12 @@
+import { FetchedStatus } from "./enum/player_status";
+
 export interface Player {
   name: string;
   playerId: string;
   score: number;
   lastChat: string;
-  status: Status;
+  playerStatus: PlayerStatus;
+  fetchedStatus: FetchedStatus;
 }
 
 export interface PlayerScore {

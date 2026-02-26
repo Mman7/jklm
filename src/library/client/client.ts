@@ -37,7 +37,7 @@ export const getAllRooms = (): Promise<Room[]> => {
 
 export const noticeServerNewQuestion = (roomId: string) => {
   const req: EventRequestBody = {
-    type: ServerEvent.newQuestion,
+    type: ServerEvent.NewQuestion,
     roomId,
   };
   return ky.post("/api/events", { json: req });
@@ -45,4 +45,8 @@ export const noticeServerNewQuestion = (roomId: string) => {
 
 export const getQuestion = (question: QuestionHashOnly): Promise<Question> => {
   return ky.get(`/api/question/${question.hash}`).json<Question>();
+};
+
+export const getAnswer = (questionHash: string): Promise<string> => {
+  return ky.get(`/api/question/${questionHash}/answer`).json<string>();
 };

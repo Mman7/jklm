@@ -1,6 +1,7 @@
 import { createClient } from "redis";
 import dotenv from "dotenv";
 import { Room } from "@/src/types/room";
+import { noticeRoomPlayerWinner } from "./ably";
 dotenv.config({ path: ".env" });
 
 const PASSWORD = process.env.DATABASE_PASSWORD;
@@ -48,6 +49,10 @@ export const addScore = async (playerId: string, roomId: string) => {
   room.scores ??= {};
   // if has player score add to it, else create new player score
   room.scores[playerId] = (room.scores[playerId] ?? 0) + 10;
+  if (room.scores[playerId] > 100) {
+    noticeRoomPlayerWinner(roomId, playerId);
+  }
+  await updateRoom(roomId, room);
   updateRoom(roomId, room);
 };
 

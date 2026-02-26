@@ -41,7 +41,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
       <section className="relative flex-2 overflow-hidden">
         <h2 className="text-lg font-bold">{player.name}</h2>
         <p className="line-clamp-3 overflow-hidden font-black text-ellipsis text-gray-500">
-          {player.status === PlayerStatus.answer_correct
+          {player.playerStatus === PlayerStatus.answer_correct
             ? "CORRECTED✅"
             : lastMessage}
         </p>

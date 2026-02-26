@@ -36,14 +36,23 @@ export function alertPlayerCorrect(playerId: string, roomId: string) {
   });
 }
 
-export function noticeUserNewQuestion(
+export function noticeRoomNewQuestion(
   roomId: string,
   questionHash: QuestionHashOnly[],
 ) {
   const channel = ably.channels.get(`room-${roomId}`);
   channel.publish("events", {
-    text: ServerEvent.newQuestion,
+    text: ServerEvent.NewQuestion,
     questionHash,
     timestamp: Date.now(),
   });
 }
+
+export const noticeRoomPlayerWinner = (roomId: string, playerId: string) => {
+  const channel = ably.channels.get(`room-${roomId}`);
+  channel.publish("events", {
+    text: ServerEvent.PlayerWinner,
+    playerId,
+    timestamp: Date.now(),
+  });
+};
