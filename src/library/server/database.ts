@@ -51,7 +51,10 @@ export const clearRoomScores = async (roomId: string) => {
 };
 
 // TODO add score depends on places
-export const addScore = async (playerId: string, roomId: string) => {
+export const addScore = async (
+  playerId: string,
+  roomId: string,
+): Promise<number | undefined> => {
   const data = await getRoomById(roomId);
   if (!data) return;
 
@@ -62,15 +65,30 @@ export const addScore = async (playerId: string, roomId: string) => {
   if (room.scores[playerId] >= 100) {
     noticeRoomPlayerWinner(roomId, playerId);
     await clearRoomScores(roomId);
-    return;
+    return room.scores[playerId];
   }
 
   await updateRoom(roomId, room);
+  return room.scores[playerId];
+};
+
+export const getPlayerScore = async (
+  playerId: string,
+  roomId: string,
+): Promise<number | undefined> => {
+  const room = await getRoomById(roomId);
+  if (!room) return undefined;
+  return room.scores?.[playerId] ?? 0;
 };
 
 export const updateRoom = async (roomId: string, room: Room) => {
   await client.json.set(`room-${roomId}`, "$", room as any);
   await client.expire(`room-${roomId}`, 10800);
+};
+
+export const deleteRoomById = async (roomId: string): Promise<boolean> => {
+  const deletedCount = await client.del(`room-${roomId}`);
+  return deletedCount > 0;
 };
 
 export const replaceRoomQuestionList = async (

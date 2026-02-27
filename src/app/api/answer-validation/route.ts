@@ -11,6 +11,7 @@ export interface AnswerValidationRequest {
 
 export interface AnswerValidationResponse {
   correct: boolean;
+  score?: number;
 }
 export async function POST(req: Request) {
   const body = await req.json();
@@ -23,14 +24,16 @@ export async function POST(req: Request) {
   const answerInStore: string = await findAnswer(questionHash);
   const isCorrect = await AnswerComparator(answerInStore, answerSubmit);
 
+  let score: number | undefined;
   if (isCorrect) {
-    await addScoreToDatabase(playerId, roomId);
+    score = await addScoreToDatabase(playerId, roomId);
     // alert player correct
     alertPlayerCorrect(playerId, roomId);
   }
 
   const response: AnswerValidationResponse = {
     correct: isCorrect,
+    score: score,
   };
   return Response.json(response);
 }

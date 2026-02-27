@@ -33,7 +33,7 @@ export default async function ResultsPage({
         <h1 className="mb-2 text-2xl font-bold">Winner</h1>
         <p>{winner}</p>
         <p className="mt-2 text-sm text-gray-600">
-          Returning to room in 5 seconds...
+          Returning to home in 5 seconds...
         </p>
       </section>
     </main>

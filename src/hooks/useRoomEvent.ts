@@ -54,7 +54,6 @@ export default function useRoomEvent() {
   useEffect(() => {
     if (!channel) return;
 
-    //TODO add new event fetch more new question
     const unsubscribe = subscribeToEvents((event) => {
       // Only handle events related to the current player
       switch (event.text) {
@@ -64,7 +63,6 @@ export default function useRoomEvent() {
           const newPlayerStat: Player = {
             ...playerRef.current,
             playerStatus: PlayerStatus.answer_correct,
-            score: playerRef.current.score + 10, // example score increment
           };
           updatePlayerStats(newPlayerStat);
           break;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { leaveRoom } from "@/src/library/client/ably_client";
 
 interface ResultsAutoRedirectProps {
   roomId: string;
@@ -16,7 +17,11 @@ export default function ResultsAutoRedirect({
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      router.replace(`/${roomId}`);
+      void leaveRoom();
+      void fetch(`/api/room/${roomId}`, {
+        method: "DELETE",
+      });
+      router.replace("/");
     }, delayMs);
 
     return () => clearTimeout(timeoutId);

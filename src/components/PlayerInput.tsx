@@ -24,11 +24,11 @@ async function validateAnswer(
 
 export default function PlayerInput() {
   const { playerId } = useAuth();
-  const { room } = useRoom();
+  const { room, player, updatePlayerStats } = useRoom();
   const { currentQuestionHash } = useQuestion();
   const [inputValue, setInputValue] = useState<string>("");
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = async (event: any) => {
     if (event.key === "Enter") {
       sendMessage(inputValue, playerId);
       const body: AnswerValidationRequest = {
@@ -38,7 +38,12 @@ export default function PlayerInput() {
         answerSubmit: inputValue,
       };
 
-      validateAnswer(body);
+      const response = await validateAnswer(body);
+      if (response.correct && response.score !== undefined && player) {
+        const updatedPlayer = { ...player };
+        updatedPlayer.score = response.score;
+        updatePlayerStats(updatedPlayer);
+      }
       setInputValue("");
     }
   };

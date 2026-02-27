@@ -1,4 +1,8 @@
-import { createRoom, getRoomById } from "@/src/library/server/database";
+import {
+  createRoom,
+  deleteRoomById,
+  getRoomById,
+} from "@/src/library/server/database";
 import { generateUID } from "@/src/utils/uuid";
 import { Room } from "../../../types/room";
 import { getRandomQuestions } from "@/src/utils/question_utils";
@@ -36,4 +40,16 @@ export async function POST(request: Request) {
   // database create Room
   createRoom(roomData);
   return new Response(JSON.stringify(roomData), { status: 201 });
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const roomId = searchParams.get("roomId");
+
+  if (!roomId) {
+    return new Response("Room ID is required", { status: 400 });
+  }
+
+  await deleteRoomById(roomId);
+  return new Response(JSON.stringify({ success: true }), { status: 200 });
 }
