@@ -56,8 +56,8 @@ export default function ChallengeDisplayer() {
 
   if (error)
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6">
-        <h1 className="font-bold">Failed to load question.</h1>
+      <div className="border-error/20 bg-error/5 flex h-full flex-col items-center justify-center border p-6">
+        <h1 className="text-error font-bold">Failed to load question.</h1>
       </div>
     );
 
@@ -74,17 +74,17 @@ export default function ChallengeDisplayer() {
   const isSvgImage = image?.type.includes("svg") ?? false;
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 p-6">
-      <h1 className="mb-2 text-xl font-bold">{data.challenge.prompt}</h1>
+    <div className="border-base-content/10 bg-base-100/40 flex h-full flex-col items-center justify-center gap-4 border p-6 backdrop-blur-xl">
+      <h1 className="mb-2 text-2xl font-bold">{data.challenge.prompt}</h1>
 
       {hasText && (
-        <section className="rounded-2xl bg-gray-200 p-6">
+        <section className="bg-gray-200 p-6">
           <q>{data.challenge.text}</q>
         </section>
       )}
 
       {hasImage && showPicture && (
-        <figure className="max-w-full overflow-hidden rounded-2xl">
+        <figure className="max-w-full overflow-hidden">
           {isSvgImage ? (
             <SvgBase64Image base64={image!.base64} alt={data.details} />
           ) : (

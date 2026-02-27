@@ -9,7 +9,7 @@ export default function PlayerListChat() {
   const { players } = useRoomPlayers(channel);
 
   return (
-    <section className="hidden w-48 flex-1 flex-col gap-3 bg-red-100 p-4 lg:flex">
+    <section className="border-base-content/10 bg-base-100/30 hidden w-48 flex-1 flex-col gap-3 border-l p-4 backdrop-blur-xl lg:flex">
       {players.map((p: Player, index) => (
         <PlayerCard key={index} player={p} />
       ))}

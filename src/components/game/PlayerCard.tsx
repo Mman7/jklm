@@ -21,15 +21,15 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
   return (
     <div
-      className={`flex flex-row gap-1 rounded-lg bg-white ${player.playerId === playerId && "bg-green-300!"} p-3 shadow-md`}
+      className={`border-base-content/10 bg-base-100/60 flex flex-row gap-3 rounded-2xl border p-4 shadow-lg backdrop-blur-xl transition-all ${player.playerId === playerId && "border-primary/50 bg-primary/10 ring-primary/20 ring-2"}`}
     >
       <div className="avatar flex-1">
         <div className="indicator overflow-visible">
-          <span className="indicator-item indicator-bottom indicator-center badge badge-primary z-10">
+          <span className="indicator-item indicator-bottom indicator-center badge badge-primary z-10 shadow-md">
             {player.score}
           </span>
           {/* This wrapper controls the round shape */}
-          <div className="h-20 w-20 overflow-hidden rounded-full">
+          <div className="ring-base-content/20 h-20 w-20 overflow-hidden rounded-full ring-2">
             <img
               src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
               alt="avatar"

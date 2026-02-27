@@ -36,10 +36,12 @@ export default function RoomCard({ room }: { room: Room }) {
   return (
     <div
       onClick={handleJoinRoom}
-      className="min-w-2/12 rounded-lg bg-amber-300 p-4 transition-all duration-200 hover:scale-105 hover:cursor-pointer hover:bg-amber-400"
+      className="group border-base-content/10 bg-base-100/60 hover:border-primary/40 hover:bg-base-100/80 min-w-2/12 cursor-pointer rounded-2xl border p-5 shadow-md backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:shadow-xl"
     >
-      <h1>{room.hostId}'s Room</h1>
-      <h1>{room.id}</h1>
+      <h1 className="group-hover:text-primary mb-1 text-lg font-semibold">
+        {room.hostId}'s Room
+      </h1>
+      <p className="text-sm opacity-70">{room.id}</p>
     </div>
   );
 }

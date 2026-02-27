@@ -243,37 +243,42 @@ export default function GamePage() {
   };
 
   return (
-    <div className="flex h-full w-full">
+    <div className="bg-base-200/50 flex h-full w-full">
       {showAnswer ? (
         <ShowAnswer />
       ) : (
         <section className="flex-3">
-          <header className="flex h-12 w-full items-center justify-between bg-gray-200 px-3">
+          <header className="border-base-content/10 bg-base-100/80 flex h-14 w-full items-center justify-between border-b px-4 shadow-sm backdrop-blur-xl">
             <TimerBar />
             {!hasJoinedGame ? (
               <button
-                className="rounded bg-black px-3 py-1 text-white"
+                className="btn btn-primary btn-sm rounded-full"
                 onClick={handleJoinGame}
                 disabled={!player}
               >
                 Join game
               </button>
             ) : (
-              <h1>
+              <h1 className="text-sm font-medium">
                 {isGameReady
                   ? "Game started"
                   : "Waiting for 2 players to start"}
               </h1>
             )}
           </header>
-          <main className="h-[calc(100%-6rem)] bg-red-200">
+          <main className="bg-base-100/20 h-[calc(100%-6.5rem)]">
             {!hasJoinedGame ? (
-              <div className="flex h-full items-center justify-center">
-                Click "Join game" to join room and show yourself in player list.
+              <div className="border-base-content/10 bg-base-100/40 flex h-full items-center justify-center border p-6 backdrop-blur-xl">
+                <p className="text-base-content/70 text-center">
+                  Click "Join game" to join room and show yourself in player
+                  list.
+                </p>
               </div>
             ) : !isGameReady ? (
-              <div className="flex h-full items-center justify-center">
-                Waiting for one more player to join.
+              <div className="border-base-content/10 bg-base-100/40 flex h-full items-center justify-center border p-6 backdrop-blur-xl">
+                <p className="text-base-content/70 text-center">
+                  Waiting for one more player to join.
+                </p>
               </div>
             ) : (
               <>

@@ -18,16 +18,23 @@ export default function RoomList() {
   }, []);
 
   return (
-    <section className="h-full w-full bg-green-400 p-8 pt-4">
-      <div className="mb-2 flex items-center justify-between gap-3">
+    <section className="flex h-full min-h-0 w-full flex-col p-4">
+      <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold">Join Public Room</h2>
-        <button className="btn btn-sm btn-outline" onClick={handleRefreshList}>
+        <button
+          className="btn btn-sm btn-outline rounded-full hover:scale-105"
+          onClick={handleRefreshList}
+        >
           Refresh List
         </button>
       </div>
-      <div className="flex flex-wrap justify-around gap-6 sm:justify-start">
-        {roomList.length > 0 &&
-          roomList.map((room: Room) => <RoomCard key={room.id} room={room} />)}
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="flex flex-wrap justify-around gap-4 px-4 sm:justify-start">
+          {roomList.length > 0 &&
+            roomList.map((room: Room) => (
+              <RoomCard key={room.id} room={room} />
+            ))}
+        </div>
       </div>
     </section>
   );

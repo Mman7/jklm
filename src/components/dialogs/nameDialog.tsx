@@ -27,19 +27,19 @@ export default function NameDialog() {
 
   return (
     <Dialog open={showNameDialog} onClose={() => closeModal()}>
-      <div>
-        <h3 className="mb-1 text-lg font-bold">Enter Your Name</h3>
+      <div className="space-y-4">
+        <h3 className="mb-3 text-xl font-bold">Enter Your Name</h3>
         <input
           type="text"
           value={inputValue}
-          placeholder="Type here"
-          className="input"
+          placeholder="Your name here..."
+          className="input border-base-content/20 bg-base-100/60 focus:border-primary focus:ring-primary/20 w-full rounded-xl border-2 backdrop-blur-xl transition-all focus:ring-2"
           maxLength={12}
           onChange={(e) => setInputValue(e.target.value)}
         />
         <button
           disabled={inputValue?.length < 1}
-          className="btn btn-block btn-neutral my-4"
+          className="btn btn-block btn-primary rounded-xl"
           onClick={() => handleSubmit()}
         >
           Apply

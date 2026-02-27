@@ -22,19 +22,19 @@ export default function JoinDialog({
 
   return (
     <Dialog open={open} onClose={() => setClose()}>
-      <div>
-        <h3 className="mb-1 text-lg font-bold">Join Room</h3>
+      <div className="space-y-4">
+        <h3 className="mb-3 text-xl font-bold">Join Room</h3>
         <input
           type="text"
           value={dialogCode}
-          placeholder="Enter Code"
-          className="input"
+          placeholder="Enter 4-digit code"
+          className="input border-base-content/20 bg-base-100/60 focus:border-primary focus:ring-primary/20 w-full rounded-xl border-2 text-center text-2xl font-bold tracking-widest uppercase backdrop-blur-xl transition-all focus:ring-2"
           maxLength={4}
           onChange={(e) => handleInput(e)}
         />
         <button
           disabled={dialogCode.length !== 4}
-          className="btn btn-block btn-neutral my-4"
+          className="btn btn-block btn-primary rounded-xl"
           onClick={() => callback()}
         >
           Join

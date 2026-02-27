@@ -26,7 +26,6 @@ export default function useDataSyncManager() {
   } = useQuestion();
   const { channel } = useRoom();
   const mounted = useMounted();
-  // TODO fix second question infinite loading
 
   // Store latest values without triggering effect re-run
   const timerRef = useRef(timer);

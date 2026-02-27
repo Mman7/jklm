@@ -61,9 +61,24 @@ export default function ShowAnswer() {
 
   return (
     <div className={`${showAnswer ? "block flex-3" : "hidden"}`}>
-      <section className="flex size-full flex-col items-center justify-center gap-2 p-6">
-        <h1 className="text-xl font-bold">Answer</h1>
-        <p className="text-center">
+      <section className="border-base-content/20 from-success/20 to-success/5 flex size-full flex-col items-center justify-center gap-4 border bg-linear-to-br p-6 shadow-xl backdrop-blur-xl">
+        <div className="bg-success/20 rounded-full p-4">
+          <svg
+            className="text-success h-12 w-12"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-bold">Answer</h1>
+        <p className="text-success text-center text-lg font-semibold">
           {isLoading ? "Loading answer..." : answer || "No answer available"}
         </p>
       </section>
