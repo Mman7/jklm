@@ -26,6 +26,7 @@ export default function useDataSyncManager() {
   } = useQuestion();
   const { channel } = useRoom();
   const mounted = useMounted();
+  // TODO fix second question infinite loading
 
   // Store latest values without triggering effect re-run
   const timerRef = useRef(timer);
@@ -53,6 +54,11 @@ export default function useDataSyncManager() {
   useEffect(() => {
     showAnswerRef.current = showAnswer;
   }, [showAnswer]);
+
+  useEffect(() => {
+    hasAppliedIncomingSyncRef.current = false;
+    pendingSyncedEndTimeRef.current = null;
+  }, [currentQuestionHash?.hash]);
 
   const sendSync = useCallback(
     (requesterId: string) => {
@@ -92,6 +98,7 @@ export default function useDataSyncManager() {
   const sendReqSync = useCallback(() => {
     if (!playerId) return;
     hasAppliedIncomingSyncRef.current = false;
+    pendingSyncedEndTimeRef.current = null;
     sendSyncRequest(playerId);
   }, [playerId]);
 
@@ -109,17 +116,25 @@ export default function useDataSyncManager() {
 
       if (!playerId) return;
       const isBroadcast = dataMessage.requesterId === BROADCAST_REQUESTER_ID;
-      const isTargetedToMe = dataMessage.requesterId === playerId;
+      const isTargetedToMe =
+        dataMessage.requesterId === playerId &&
+        dataMessage.senderId !== playerId;
 
       if (!isBroadcast && !isTargetedToMe) return;
       if (dataMessage.senderId === playerId) return;
-      if (isTargetedToMe && hasAppliedIncomingSyncRef.current) return;
+
+      const syncData = dataMessage.payload;
+      const incomingHash = syncData.currentQuestionHash.hash;
+      const localHash = questionRef.current?.hash;
+      const isSameQuestion = localHash === incomingHash;
+
+      if (isTargetedToMe && hasAppliedIncomingSyncRef.current && isSameQuestion)
+        return;
 
       if (isTargetedToMe) {
         hasAppliedIncomingSyncRef.current = true;
       }
 
-      const syncData = dataMessage.payload;
       if (!syncData.isShowingAnswer && syncData.timer.totalMs <= 0) return;
 
       setShowAnswer(syncData.isShowingAnswer);

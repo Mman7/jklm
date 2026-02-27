@@ -1,4 +1,5 @@
 import { getRoomById } from "@/src/library/server/database";
+import ResultsAutoRedirect from "@/src/components/game/ResultsAutoRedirect";
 
 const getWinnerFromScores = (scores?: Record<string, number>) => {
   if (!scores) return null;
@@ -27,9 +28,13 @@ export default async function ResultsPage({
 
   return (
     <main className="flex h-full w-full items-center justify-center">
+      <ResultsAutoRedirect roomId={resolvedParams.id} />
       <section className="rounded-xl bg-gray-200 p-8 text-center">
         <h1 className="mb-2 text-2xl font-bold">Winner</h1>
         <p>{winner}</p>
+        <p className="mt-2 text-sm text-gray-600">
+          Returning to room in 5 seconds...
+        </p>
       </section>
     </main>
   );

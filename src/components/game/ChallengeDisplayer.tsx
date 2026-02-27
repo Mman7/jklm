@@ -7,6 +7,8 @@ import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect } from "react";
 import { getQuestion } from "@/src/library/client/client";
 import { Question } from "@/src/types/question";
+import SvgBase64Image from "./SvgBase64Image";
+import Base64Image from "./Base64Image";
 
 export default function ChallengeDisplayer() {
   const { showPicture } = useGame();
@@ -14,12 +16,19 @@ export default function ChallengeDisplayer() {
   const { setShowLoading } = useLoadingDialog();
   const { updatePlayerStats, player } = useRoom();
 
-  const { data, isLoading } = useSWR<Question>(
+  const { data, isLoading, error } = useSWR<Question>(
     currentQuestionHash,
-    getQuestion,
+    async (questionHash) => {
+      const question = await getQuestion(questionHash);
+      if (!question) {
+        throw new Error("Question not found");
+      }
+      return question;
+    },
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     },
   );
 
@@ -31,8 +40,8 @@ export default function ChallengeDisplayer() {
   }, [data, setCurrentQuestion]);
 
   useEffect(() => {
-    setShowLoading(isLoading);
-  }, [isLoading, setShowLoading]);
+    setShowLoading(!!currentQuestionHash && isLoading && !error);
+  }, [currentQuestionHash, error, isLoading, setShowLoading]);
 
   useEffect(() => {
     // If player has fetched the question, update status to fetched
@@ -45,6 +54,13 @@ export default function ChallengeDisplayer() {
     });
   }, [data, isLoading, player, updatePlayerStats]);
 
+  if (error)
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-6">
+        <h1 className="font-bold">Failed to load question.</h1>
+      </div>
+    );
+
   if (!data)
     return (
       <div className="flex h-full flex-col items-center justify-center p-6">
@@ -54,6 +70,8 @@ export default function ChallengeDisplayer() {
 
   const hasText = !!data.challenge.text;
   const hasImage = !!data.challenge.image;
+  const image = data.challenge.image;
+  const isSvgImage = image?.type.includes("svg") ?? false;
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-6">
@@ -67,17 +85,12 @@ export default function ChallengeDisplayer() {
 
       {hasImage && showPicture && (
         <figure className="max-w-full overflow-hidden rounded-2xl">
-          {data.challenge.image!.type === "image/svg+xml" ? (
-            <svg
-              className="h-auto max-h-96 w-full"
-              dangerouslySetInnerHTML={{
-                __html: atob(data.challenge.image!.base64),
-              }}
-            />
+          {isSvgImage ? (
+            <SvgBase64Image base64={image!.base64} alt={data.details} />
           ) : (
-            <img
-              className="h-auto max-h-96 max-w-full object-contain"
-              src={`data:${data.challenge.image!.type};base64,${data.challenge.image!.base64}`}
+            <Base64Image
+              type={image!.type}
+              base64={image!.base64}
               alt={data.details}
             />
           )}

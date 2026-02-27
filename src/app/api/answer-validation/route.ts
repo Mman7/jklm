@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   const isCorrect = await AnswerComparator(answerInStore, answerSubmit);
 
   if (isCorrect) {
-    addScoreToDatabase(playerId, roomId);
+    await addScoreToDatabase(playerId, roomId);
     // alert player correct
     alertPlayerCorrect(playerId, roomId);
   }

@@ -1,19 +1,27 @@
 import { getQuestion } from "@/src/utils/question_utils";
 
-export function GET(_request: Request, { params }: any): Promise<Response> {
-  return new Promise(async (resolve) => {
+export async function GET(
+  _request: Request,
+  { params }: any,
+): Promise<Response> {
+  try {
     const { id } = await params;
     const question = await getQuestion(id);
 
-    // ? investigate send blob base64 image or pure json base64
-
-    // const blob = base64ToBlob(challenge!.image!.base64);
-    // blob.arrayBuffer().then((buffer) => {
-    // });
-    resolve(
-      new Response(JSON.stringify(question), {
+    if (!question) {
+      return new Response(JSON.stringify({ error: "Question not found" }), {
+        status: 404,
         headers: { "Content-Type": "application/json" },
-      }),
-    );
-  });
+      });
+    }
+
+    return new Response(JSON.stringify(question), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: "Failed to load question" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
