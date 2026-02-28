@@ -1,42 +1,31 @@
 "use client";
 
 import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
+import GameJoinStatus from "@/src/components/game/GameJoinStatus";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
 import TimerBar from "@/src/components/Timer";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useDataSyncManager from "@/src/hooks/useDataSyncManager";
+import useGamePageBootstrap from "@/src/hooks/useGamePageBootstrap";
+import useJoinSync from "@/src/hooks/useJoinSync";
 import useMounted from "@/src/hooks/useMounted";
+import usePlayerInputAutoFocus from "@/src/hooks/usePlayerInputAutoFocus";
 import useRoomEvent from "@/src/hooks/useRoomEvent";
+import useRoundCompletionHandler from "@/src/hooks/useRoundCompletionHandler";
 import usePlayerStatsUpdater from "@/src/hooks/usePlayerStats";
 import useUserValid from "@/src/hooks/useUserValid";
-import {
-  enterChannel,
-  initAbly,
-  leaveRoom,
-} from "@/src/library/client/ably_client";
-import { FetchedStatus, PlayerStatus } from "@/src/types/enum/player_status";
+import { enterChannel } from "@/src/library/client/ably_client";
 import useAuth from "@/src/zustands/useAuthStore";
 import useQuestion from "@/src/zustands/useQuestionStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useRef } from "react";
+import { useState } from "react";
 import useRoomInitializer from "@/src/hooks/useRoomInitializer";
 import useShowAnswer from "@/src/zustands/useShowAnswerStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
-import { noticeServerNewQuestion } from "@/src/library/client/client";
-import { Player } from "@/src/types/player";
-
-const checkIsFirstPlayer = (players: Player[], playerId: string) => {
-  if (players.length === 0) return false;
-  const sortedPlayers = [...players].sort((a, b) =>
-    a.playerId.localeCompare(b.playerId),
-  );
-  return sortedPlayers[0].playerId === playerId;
-};
 
 export default function GamePage() {
   const { playerId, name } = useAuth();
@@ -54,168 +43,46 @@ export default function GamePage() {
   const [joinedQuestionHash, setJoinedQuestionHash] = useState<string | null>(
     null,
   );
-  const playerInputContainerRef = useRef<HTMLDivElement | null>(null);
-  const isRequestingNewQuestionRef = useRef(false);
-  const lastTriggeredNewQuestionKeyRef = useRef<string | null>(null);
-  const lastSeenQuestionHashRef = useRef<string | null>(null);
-  const wasShowingAnswerRef = useRef(false);
-  const initializedPlayerKeyRef = useRef<string | null>(null);
   const { sendReqSync } = useDataSyncManager();
-  const hasRequestedSyncRef = useRef(false);
+  const { playerInputContainerRef } = usePlayerInputAutoFocus({
+    currentQuestionHash,
+    hasJoinedGame,
+    joinedQuestionHash,
+    showAnswer,
+  });
+
   // initialize channel
   useLastChat();
   useRoomEvent();
   usePlayerStatsUpdater(hasJoinedGame);
   useRoomInitializer();
 
-  // initialize player stats and enter channel
-  useEffect(() => {
-    if (!isUserValid) {
-      setShowNameDialog(true);
-    } else {
-      setShowNameDialog(false);
-    }
-  }, [mounted, isUserValid]);
+  useGamePageBootstrap({
+    mounted,
+    isUserValid,
+    setShowNameDialog,
+    roomId,
+    playerId,
+    setChannel,
+    room,
+    name,
+    updatePlayerStats,
+    questionList,
+    currentQuestionHash,
+    setCurrentQuestionHash,
+  });
 
-  // initialize ably channel and presence
-  useEffect(() => {
-    if (!mounted) return;
-    const ch = initAbly({ roomId, playerId });
-    setChannel(ch);
-    return () => {
-      leaveRoom();
-    };
-  }, [mounted]);
+  useJoinSync({ channel, player, hasJoinedGame, sendReqSync });
 
-  // initialize player score only once per room/player
-  useEffect(() => {
-    if (!room) return;
-
-    const initKey = `${room.id}:${playerId}`;
-    if (initializedPlayerKeyRef.current === initKey) return;
-    initializedPlayerKeyRef.current = initKey;
-
-    const scores = room?.scores?.[playerId];
-    updatePlayerStats({
-      name: name,
-      playerId: playerId,
-      score: scores || 0,
-      lastChat: "",
-      playerStatus: PlayerStatus.waiting,
-      fetchedStatus: FetchedStatus.fetching,
-    });
-  }, [name, playerId, room, updatePlayerStats]);
-
-  // initialize current question when room/question list is loaded
-  useEffect(() => {
-    if (!room) return;
-
-    const sourceQuestionList =
-      questionList.length > 0 ? questionList : (room.questionList ?? []);
-    if (sourceQuestionList.length === 0) return;
-
-    const hasValidCurrentQuestion =
-      !!currentQuestionHash &&
-      sourceQuestionList.some((q) => q.hash === currentQuestionHash.hash);
-
-    // only initialize once (or recover if current question is no longer valid)
-    if (!hasValidCurrentQuestion) {
-      setCurrentQuestionHash(sourceQuestionList[0] || null);
-    }
-  }, [room, questionList, setCurrentQuestionHash]);
-
-  useEffect(() => {
-    if (!hasJoinedGame) {
-      hasRequestedSyncRef.current = false;
-    }
-  }, [hasJoinedGame]);
-
-  useEffect(() => {
-    if (!channel || !player || !hasJoinedGame || hasRequestedSyncRef.current)
-      return;
-    hasRequestedSyncRef.current = true;
-    sendReqSync();
-  }, [channel, hasJoinedGame, player, sendReqSync]);
-
-  useEffect(() => {
-    if (currentQuestionHash?.hash) {
-      lastSeenQuestionHashRef.current = currentQuestionHash.hash;
-    }
-  }, [currentQuestionHash?.hash]);
-
-  useEffect(() => {
-    const currentHash = currentQuestionHash?.hash;
-    const completedQuestionHash =
-      currentHash ?? lastSeenQuestionHashRef.current;
-    const completedIndex = questionList.findIndex(
-      (q) => q.hash === completedQuestionHash,
-    );
-    const hasJustFinishedLastQuestion =
-      wasShowingAnswerRef.current &&
-      !showAnswer &&
-      questionList.length > 0 &&
-      completedIndex === questionList.length - 1;
-    const isHost = checkIsFirstPlayer(players, playerId);
-    const roundKey = `${questionList[0]?.hash ?? "none"}:${completedQuestionHash ?? "none"}`;
-
-    if (
-      !hasJoinedGame ||
-      !hasJustFinishedLastQuestion ||
-      !isHost ||
-      isRequestingNewQuestionRef.current ||
-      lastTriggeredNewQuestionKeyRef.current === roundKey
-    ) {
-      wasShowingAnswerRef.current = showAnswer;
-      return;
-    }
-
-    isRequestingNewQuestionRef.current = true;
-    lastTriggeredNewQuestionKeyRef.current = roundKey;
-
-    noticeServerNewQuestion(roomId)
-      .catch(() => {
-        lastTriggeredNewQuestionKeyRef.current = null;
-      })
-      .finally(() => {
-        isRequestingNewQuestionRef.current = false;
-      });
-
-    wasShowingAnswerRef.current = showAnswer;
-  }, [
-    currentQuestionHash?.hash,
+  useRoundCompletionHandler({
+    currentQuestionHash,
     hasJoinedGame,
     showAnswer,
     playerId,
     players,
     questionList,
     roomId,
-  ]);
-
-  useEffect(() => {
-    const isBlockedForCurrentQuestion =
-      hasJoinedGame &&
-      !joinedQuestionHash &&
-      currentQuestionHash?.hash === joinedQuestionHash;
-
-    if (!hasJoinedGame || isBlockedForCurrentQuestion || showAnswer) return;
-
-    const rafId = requestAnimationFrame(() => {
-      const root = playerInputContainerRef.current;
-      const inputEl = root?.querySelector<
-        HTMLInputElement | HTMLTextAreaElement
-      >(
-        'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [contenteditable="true"]',
-      );
-      inputEl?.focus();
-    });
-
-    return () => cancelAnimationFrame(rafId);
-  }, [
-    currentQuestionHash?.hash,
-    hasJoinedGame,
-    joinedQuestionHash,
-    showAnswer,
-  ]);
+  });
 
   if (!channel) return <div>Loading...</div>;
 
@@ -250,21 +117,12 @@ export default function GamePage() {
         <section className="flex-3">
           <header className="border-base-content/10 bg-base-100/80 flex h-14 w-full items-center justify-between border-b px-4 shadow-sm backdrop-blur-xl">
             <TimerBar />
-            {!hasJoinedGame ? (
-              <button
-                className="btn btn-primary btn-sm rounded-full"
-                onClick={handleJoinGame}
-                disabled={!player}
-              >
-                Join game
-              </button>
-            ) : (
-              <h1 className="text-sm font-medium">
-                {isGameReady
-                  ? "Game started"
-                  : "Waiting for 2 players to start"}
-              </h1>
-            )}
+            <GameJoinStatus
+              hasJoinedGame={hasJoinedGame}
+              isGameReady={isGameReady}
+              canJoinGame={!!player}
+              onJoinGame={handleJoinGame}
+            />
           </header>
           <main className="bg-base-100/20 h-[calc(100%-6.5rem)]">
             {!hasJoinedGame ? (
