@@ -7,6 +7,8 @@ import {
   AnswerValidationResponse,
 } from "../app/api/answer-validation/route";
 import useRoom from "../zustands/useRoomStore";
+import { Player } from "../types/player";
+import { PlayerStatus } from "../types/enum/player_status";
 
 /**
  * Helper function to validate the player's answer with the server.
@@ -58,8 +60,9 @@ export default function PlayerInput() {
       // If the server confirms the answer is correct and returns a score,
       // update the local player object with the new score.
       if (response.correct && response.score !== undefined && player) {
-        const updatedPlayer = { ...player };
+        const updatedPlayer: Player = { ...player };
         updatedPlayer.score = response.score;
+        updatedPlayer.playerStatus = PlayerStatus.answer_correct;
         updatePlayerStats(updatedPlayer);
       }
 

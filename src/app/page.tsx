@@ -77,7 +77,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col gap-6 overflow-hidden p-6 md:p-12">
+    <div className="relative flex h-full w-full flex-col gap-6 p-6 md:p-12">
       {/* Decorative dots pattern - subtle overlay */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"

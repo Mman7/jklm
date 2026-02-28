@@ -52,12 +52,39 @@ export const noticeServerNewQuestion = (roomId: string) => {
 export const getQuestions = (
   questions: QuestionHashOnly[],
 ): Promise<Question[]> => {
-  // Resolve all question payloads for the round in a single request.
-  return ky
-    .post("/api/question/batch", {
-      json: { hashes: questions.map((question) => question.hash) },
-    })
-    .json<Question[]>();
+  // Resolve all question payloads in smaller chunks to avoid oversized
+  // serverless responses on providers like Netlify.
+  const BATCH_SIZE = 5;
+
+  return (async () => {
+    const hashes = questions.map((question) => question.hash);
+    if (hashes.length === 0) return [];
+
+    const hashChunks: string[][] = [];
+    for (let index = 0; index < hashes.length; index += BATCH_SIZE) {
+      hashChunks.push(hashes.slice(index, index + BATCH_SIZE));
+    }
+
+    const chunkResults = await Promise.all(
+      hashChunks.map((chunkHashes) =>
+        ky
+          .post("/api/question/batch", {
+            json: { hashes: chunkHashes },
+          })
+          .json<Question[]>(),
+      ),
+    );
+
+    const questionByHash = new Map(
+      chunkResults
+        .flat()
+        .map((question) => [question.challenge.hash, question]),
+    );
+
+    return hashes
+      .map((hash) => questionByHash.get(hash))
+      .filter((question): question is Question => question !== undefined);
+  })();
 };
 
 export const getAnswer = (questionHash: string): Promise<string> => {

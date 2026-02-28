@@ -31,7 +31,7 @@ export default function RootLayout({
         <Navbar />
         <div className="drawer lg:drawer-open h-[calc(100dvh-4rem)]">
           <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
-          <div className="drawer-content flex flex-col items-center overflow-hidden">
+          <div className="drawer-content flex flex-col items-center">
             {children}
           </div>
           <Sidebar />

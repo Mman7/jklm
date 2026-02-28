@@ -37,7 +37,7 @@ export default function RoomList() {
       {/* Scrollable container for room cards */}
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {/* Grid container for displaying room cards */}
-        <div className="flex flex-wrap justify-around gap-4 px-4 sm:justify-start">
+        <div className="flex flex-wrap gap-4 px-4">
           {/* Conditional rendering: only show room cards if roomList has items */}
           {roomList.length > 0 &&
             roomList.map((room: Room) => (
