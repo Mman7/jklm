@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { FetchedStatus } from "@/src/types/enum/player_status";
+import { FetchedStatus, PlayerStatus } from "@/src/types/enum/player_status";
 import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useQuestion from "@/src/zustands/useQuestionStore";
@@ -34,7 +34,7 @@ export default function ChallengeDisplayer() {
       const questions = await getQuestions(
         hashes.map((hash: string) => ({ hash })),
       );
-      console.log("Fetched questions:", questions);
+      console.log(questionList);
       if (!questions || questions.length === 0) {
         throw new Error("Questions not found");
       }
@@ -93,6 +93,7 @@ export default function ChallengeDisplayer() {
 
     updatePlayerStats({
       ...player,
+      playerStatus: PlayerStatus.waiting,
       fetchedStatus: FetchedStatus.fetched,
     });
   }, [isLoading, player, selectedQuestion, updatePlayerStats]);
