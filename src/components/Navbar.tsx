@@ -44,19 +44,21 @@ export default function Navbar() {
             </div>
             <h1 className="mr-3">{name}</h1>
           </button>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu border-base-content/20 bg-base-100/95 z-50 mt-2 w-52 rounded-2xl border p-2 shadow-2xl backdrop-blur-xl"
-          >
-            <li>
-              <button
-                className="hover:bg-base-content/5 rounded-xl"
-                onClick={handleChangedName}
-              >
-                Change Name
-              </button>
-            </li>
-          </ul>
+          {path === "/" && (
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu border-base-content/20 bg-base-100/95 z-50 mt-2 w-52 rounded-2xl border p-2 shadow-2xl backdrop-blur-xl"
+            >
+              <li>
+                <button
+                  className="hover:bg-base-content/5 rounded-xl"
+                  onClick={handleChangedName}
+                >
+                  Change Name
+                </button>
+              </li>
+            </ul>
+          )}
         </div>
       </div>
     </div>
