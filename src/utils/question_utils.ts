@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
-import { Challenge, Question, QuestionHashOnly } from "../types/question";
+import type { Challenge, Question, QuestionHashOnly } from "../types/question";
 
 // Static data files generated during prebuild.
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
@@ -26,24 +26,25 @@ function loadQuestionPathMap(): Record<string, string> {
   }
 }
 
-export function getRandomQuestions(count: number = 10) {
-  // Randomly pick hashes from the index. Duplicates are currently allowed.
+export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
+  // Randomly pick unique hashes from the index.
   const hashes = Object.keys(questionPathMap);
-  const questions: QuestionHashOnly[] = [];
+  if (hashes.length === 0 || count <= 0) return [];
 
-  for (let i = 0; i < count; i++) {
-    const randomHash = hashes[Math.floor(Math.random() * hashes.length)];
-    if (randomHash) {
-      questions.push({ hash: randomHash });
-    }
+  const shuffled = [...hashes];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  return questions;
+  return shuffled.slice(0, Math.min(count, shuffled.length)).map((hash) => ({
+    hash,
+  }));
 }
 
 function generateCountTime() {
-  // Round countdown baseline: 10 seconds from "now".
-  return Date.now() + 10_000;
+  // Round countdown baseline: 20 seconds from "now".
+  return Date.now() + 20_000;
 }
 
 export async function getQuestion(
@@ -60,6 +61,26 @@ export async function getQuestion(
 
   // return question ? removeAnswerFromQuestion(question) : null;
   return question;
+}
+
+export async function getQuestions(
+  questionHashes: string[],
+): Promise<Question[]> {
+  const uniqueHashes = [...new Set(questionHashes)];
+
+  const questions = await Promise.all(
+    uniqueHashes.map((hash) => readQuestionByHash(hash)),
+  );
+
+  return questions
+    .filter((question): question is Question => question !== null)
+    .map((question) => ({
+      ...question,
+      challenge: {
+        ...question.challenge,
+        end_time: generateCountTime(),
+      },
+    }));
 }
 
 // function removeAnswerFromQuestion(question: Question): Question {

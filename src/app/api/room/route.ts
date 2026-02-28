@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     room = await getRoomById(id);
   }
 
-  const questionList = getRandomQuestions(5);
+  const questionList = getRandomQuestions(15);
 
   // create new room
   const roomData: Room = {

@@ -4,26 +4,41 @@ import useGame from "@/src/zustands/useGameStore";
 import useLoadingDialog from "@/src/zustands/useLoadingStore";
 import useQuestion from "@/src/zustands/useQuestionStore";
 import useRoom from "@/src/zustands/useRoomStore";
-import { useEffect } from "react";
-import { getQuestion } from "@/src/library/client/client";
+import { useEffect, useMemo } from "react";
+import { getQuestions } from "@/src/library/client/client";
 import { Question } from "@/src/types/question";
 import SvgBase64Image from "./SvgBase64Image";
 import Base64Image from "./Base64Image";
 
 export default function ChallengeDisplayer() {
   const { showPicture } = useGame();
-  const { currentQuestionHash, setCurrentQuestion } = useQuestion();
+  const {
+    currentQuestionHash,
+    currentQuestion,
+    questionList,
+    setCurrentQuestion,
+  } = useQuestion();
   const { setShowLoading } = useLoadingDialog();
   const { updatePlayerStats, player } = useRoom();
 
-  const { data, isLoading, error } = useSWR<Question>(
-    currentQuestionHash,
-    async (questionHash) => {
-      const question = await getQuestion(questionHash);
-      if (!question) {
-        throw new Error("Question not found");
+  const roundHashes = useMemo(
+    () => questionList.map((question) => question.hash),
+    [questionList],
+  );
+
+  const { data, isLoading, error } = useSWR<Question[]>(
+    roundHashes.length > 0
+      ? { type: "round-questions", hashes: roundHashes }
+      : null,
+    async ({ hashes }) => {
+      const questions = await getQuestions(
+        hashes.map((hash: string) => ({ hash })),
+      );
+      console.log("Fetched questions:", questions);
+      if (!questions || questions.length === 0) {
+        throw new Error("Questions not found");
       }
-      return question;
+      return questions;
     },
     {
       revalidateOnFocus: false,
@@ -32,27 +47,55 @@ export default function ChallengeDisplayer() {
     },
   );
 
-  useEffect(() => {
-    if (data) {
-      setCurrentQuestion(data);
-      console.log(data);
+  const selectedQuestion = useMemo(() => {
+    if (!data || !currentQuestionHash?.hash) return null;
+    return (
+      data.find(
+        (question) => question.challenge.hash === currentQuestionHash.hash,
+      ) || null
+    );
+  }, [currentQuestionHash?.hash, data]);
+
+  const activeQuestion = useMemo(() => {
+    if (
+      currentQuestion &&
+      currentQuestionHash?.hash &&
+      currentQuestion.challenge.hash === currentQuestionHash.hash
+    ) {
+      return currentQuestion;
     }
-  }, [data, setCurrentQuestion]);
+
+    return selectedQuestion;
+  }, [currentQuestion, currentQuestionHash?.hash, selectedQuestion]);
 
   useEffect(() => {
-    setShowLoading(!!currentQuestionHash && isLoading && !error);
-  }, [currentQuestionHash, error, isLoading, setShowLoading]);
+    if (!selectedQuestion || !currentQuestionHash?.hash) return;
+
+    setCurrentQuestion({
+      ...selectedQuestion,
+      challenge: {
+        ...selectedQuestion.challenge,
+        end_time: Date.now() + 20_000,
+      },
+    });
+  }, [currentQuestionHash?.hash, selectedQuestion, setCurrentQuestion]);
+
+  useEffect(() => {
+    setShowLoading(
+      !!currentQuestionHash && !error && (isLoading || !selectedQuestion),
+    );
+  }, [currentQuestionHash, error, isLoading, selectedQuestion, setShowLoading]);
 
   useEffect(() => {
     // If player has fetched the question, update status to fetched
-    if (isLoading || !data || !player) return;
+    if (isLoading || !selectedQuestion || !player) return;
     if (player.fetchedStatus === FetchedStatus.fetched) return;
 
     updatePlayerStats({
       ...player,
       fetchedStatus: FetchedStatus.fetched,
     });
-  }, [data, isLoading, player, updatePlayerStats]);
+  }, [isLoading, player, selectedQuestion, updatePlayerStats]);
 
   if (error)
     return (
@@ -61,37 +104,42 @@ export default function ChallengeDisplayer() {
       </div>
     );
 
-  if (!data)
+  if (!activeQuestion)
     return (
       <div className="flex h-full flex-col items-center justify-center p-6">
         <h1 className="font-bold">Loading...</h1>
       </div>
     );
 
-  const hasText = !!data.challenge.text;
-  const hasImage = !!data.challenge.image;
-  const image = data.challenge.image;
+  const hasText = !!activeQuestion.challenge.text;
+  const hasImage = !!activeQuestion.challenge.image;
+  const image = activeQuestion.challenge.image;
   const isSvgImage = image?.type.includes("svg") ?? false;
 
   return (
     <div className="border-base-content/10 bg-base-100/40 flex h-full flex-col items-center justify-center gap-4 border p-6 backdrop-blur-xl">
-      <h1 className="mb-2 text-2xl font-bold">{data.challenge.prompt}</h1>
+      <h1 className="mb-2 text-2xl font-bold">
+        {activeQuestion.challenge.prompt}
+      </h1>
 
       {hasText && (
         <section className="bg-gray-200 p-6">
-          <q>{data.challenge.text}</q>
+          <q>{activeQuestion.challenge.text}</q>
         </section>
       )}
 
       {hasImage && showPicture && (
         <figure className="max-w-full overflow-hidden">
           {isSvgImage ? (
-            <SvgBase64Image base64={image!.base64} alt={data.details} />
+            <SvgBase64Image
+              base64={image!.base64}
+              alt={activeQuestion.details}
+            />
           ) : (
             <Base64Image
               type={image!.type}
               base64={image!.base64}
-              alt={data.details}
+              alt={activeQuestion.details}
             />
           )}
         </figure>

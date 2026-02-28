@@ -3,16 +3,19 @@ import useQuestion from "../zustands/useQuestionStore";
 import useTimer from "../hooks/useTimer";
 import useShowAnswer from "../zustands/useShowAnswerStore";
 import useGame from "../zustands/useGameStore";
+import useLoadingDialog from "../zustands/useLoadingStore";
 
 export default function Timer() {
   const { currentQuestion } = useQuestion();
   const { showAnswer, setShowAnswer } = useShowAnswer();
   const { showPicture } = useGame();
+  const { showLoading } = useLoadingDialog();
   const isImageNotReady = !!currentQuestion?.challenge.image && !showPicture;
+  const isTimerPaused = isImageNotReady || showLoading;
 
   const timeLeft = useTimer(
     currentQuestion?.challenge.end_time ?? null,
-    isImageNotReady,
+    isTimerPaused,
   );
 
   // Ref to track previous expired state

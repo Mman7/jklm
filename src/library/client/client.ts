@@ -49,9 +49,15 @@ export const noticeServerNewQuestion = (roomId: string) => {
   return ky.post("/api/events", { json: req });
 };
 
-export const getQuestion = (question: QuestionHashOnly): Promise<Question> => {
-  // Resolve full question payload from hash-only descriptor.
-  return ky.get(`/api/question/${question.hash}`).json<Question>();
+export const getQuestions = (
+  questions: QuestionHashOnly[],
+): Promise<Question[]> => {
+  // Resolve all question payloads for the round in a single request.
+  return ky
+    .post("/api/question/batch", {
+      json: { hashes: questions.map((question) => question.hash) },
+    })
+    .json<Question[]>();
 };
 
 export const getAnswer = (questionHash: string): Promise<string> => {

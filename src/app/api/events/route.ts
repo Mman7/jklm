@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   console.log("Received event:", type, "for room:", roomId);
 
   if (type === ServerEvent.NewQuestion) {
-    const questionHashList: QuestionHashOnly[] = getRandomQuestions();
+    const questionHashList: QuestionHashOnly[] = getRandomQuestions(15);
     const updatedRoom = await replaceRoomQuestionList(roomId, questionHashList);
 
     if (!updatedRoom) {
