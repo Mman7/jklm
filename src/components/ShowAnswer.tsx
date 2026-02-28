@@ -58,8 +58,8 @@ export default function ShowAnswer() {
     if (!showAnswer) return;
 
     const timer = setTimeout(() => {
-      goNextRef.current(); // Call next function from stable ref
       setShowAnswerRef.current(false); // Set show answer to false via stable ref
+      goNextRef.current(); // Call next function from stable ref
     }, 5000); // Hide answer after 5 seconds
 
     return () => clearTimeout(timer); // Cleanup timer on unmount

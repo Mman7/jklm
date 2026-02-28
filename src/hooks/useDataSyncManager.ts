@@ -138,6 +138,7 @@ export default function useDataSyncManager() {
       const incomingHash = syncData.currentQuestionHash.hash;
       const localHash = questionRef.current?.hash;
       const isSameQuestion = localHash === incomingHash;
+      const hasLocalQuestion = !!localHash;
 
       // For targeted sync, apply once per same-question context.
       if (isTargetedToMe && hasAppliedIncomingSyncRef.current && isSameQuestion)
@@ -151,7 +152,12 @@ export default function useDataSyncManager() {
       // the round is explicitly in answer phase.
       if (!syncData.isShowingAnswer && syncData.timer.totalMs <= 0) return;
 
-      setShowAnswer(syncData.isShowingAnswer);
+      if (hasLocalQuestion && !isSameQuestion) {
+        // Question changed locally; never carry answer-phase UI across hashes.
+        setShowAnswer(false);
+      } else {
+        setShowAnswer(syncData.isShowingAnswer);
+      }
 
       setCurrentQuestionHash(syncData.currentQuestionHash);
 
