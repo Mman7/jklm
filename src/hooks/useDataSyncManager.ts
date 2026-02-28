@@ -27,14 +27,18 @@ export default function useDataSyncManager() {
   const { channel } = useRoom();
   const mounted = useMounted();
 
-  // Store latest values without triggering effect re-run
+  // Keep latest values in refs so callbacks/subscriptions always read fresh state
+  // without forcing re-subscription on every render.
   const timerRef = useRef(timer);
   const questionRef = useRef(currentQuestionHash);
   const currentQuestionRef = useRef(currentQuestion);
+  // If sync arrives before the full question object is loaded, cache end_time here
+  // and apply it once matching question data is available.
   const pendingSyncedEndTimeRef = useRef<{
     hash: string;
     endTimeMs: number;
   } | null>(null);
+  // Prevent repeatedly applying the same targeted sync payload.
   const hasAppliedIncomingSyncRef = useRef(false);
   const showAnswerRef = useRef(showAnswer);
 
@@ -55,18 +59,21 @@ export default function useDataSyncManager() {
   }, [showAnswer]);
 
   useEffect(() => {
+    // New question means old sync guards are no longer valid.
     hasAppliedIncomingSyncRef.current = false;
     pendingSyncedEndTimeRef.current = null;
   }, [currentQuestionHash?.hash]);
 
   const sendSync = useCallback(
     (requesterId: string) => {
+      // Cannot publish sync without local identity.
       if (!playerId) return;
 
       const currentQuestionHash = questionRef.current;
       const currentQuestion = currentQuestionRef.current;
       const currentTimer = timerRef.current;
 
+      // Only sync when we have a valid local round context.
       if (!currentQuestionHash || currentTimer === null) return;
       if (
         !currentQuestion ||
@@ -74,6 +81,7 @@ export default function useDataSyncManager() {
       ) {
         return;
       }
+      // Ignore negative/expired timer broadcasts unless answer phase is shown.
       if (!showAnswerRef.current && currentTimer <= 0) return;
 
       const syncData = {
@@ -96,6 +104,7 @@ export default function useDataSyncManager() {
 
   const sendReqSync = useCallback(() => {
     if (!playerId) return;
+    // Fresh request should accept one incoming targeted sync again.
     hasAppliedIncomingSyncRef.current = false;
     pendingSyncedEndTimeRef.current = null;
     sendSyncRequest(playerId);
@@ -105,6 +114,7 @@ export default function useDataSyncManager() {
     if (!mounted || !channel) return;
 
     const unsubscribe = subscribeToSync((syncMessage) => {
+      // Another player asks for direct sync; respond with current snapshot.
       if (syncMessage.type === "sync_request") {
         if (!playerId || syncMessage.requesterId === playerId) return;
         sendSync(syncMessage.requesterId);
@@ -119,7 +129,9 @@ export default function useDataSyncManager() {
         dataMessage.requesterId === playerId &&
         dataMessage.senderId !== playerId;
 
+      // Accept only broadcast sync or direct sync addressed to this player.
       if (!isBroadcast && !isTargetedToMe) return;
+      // Never process our own sync message.
       if (dataMessage.senderId === playerId) return;
 
       const syncData = dataMessage.payload;
@@ -127,6 +139,7 @@ export default function useDataSyncManager() {
       const localHash = questionRef.current?.hash;
       const isSameQuestion = localHash === incomingHash;
 
+      // For targeted sync, apply once per same-question context.
       if (isTargetedToMe && hasAppliedIncomingSyncRef.current && isSameQuestion)
         return;
 
@@ -134,6 +147,8 @@ export default function useDataSyncManager() {
         hasAppliedIncomingSyncRef.current = true;
       }
 
+      // Same rule as sender side: avoid applying an already-finished timer unless
+      // the round is explicitly in answer phase.
       if (!syncData.isShowingAnswer && syncData.timer.totalMs <= 0) return;
 
       setShowAnswer(syncData.isShowingAnswer);
@@ -158,6 +173,7 @@ export default function useDataSyncManager() {
         return;
       }
 
+      // Question object not loaded yet; defer end_time update.
       pendingSyncedEndTimeRef.current = {
         hash: questionHash,
         endTimeMs: syncedEndTimeMs,
@@ -177,6 +193,7 @@ export default function useDataSyncManager() {
   ]);
 
   useEffect(() => {
+    // Apply deferred sync timing once matching question data becomes available.
     const pendingSync = pendingSyncedEndTimeRef.current;
     const localCurrentQuestion = currentQuestion;
 
@@ -197,6 +214,7 @@ export default function useDataSyncManager() {
   useEffect(() => {
     if (!mounted || !channel || !playerId) return;
 
+    // Periodic lightweight broadcast so late joiners drift less before manual sync.
     const intervalId = setInterval(() => {
       sendSync(BROADCAST_REQUESTER_ID);
     }, 3000);

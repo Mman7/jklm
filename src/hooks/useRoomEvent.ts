@@ -14,6 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function useRoomEvent() {
   const router = useRouter();
   const params = useParams();
+  // Room id is sourced from dynamic route segment.
   const roomId = typeof params.id === "string" ? params.id : "";
   const { channel, updatePlayerStats, player } = useRoom();
   const { isAllPlayerCorrected, isAllPlayerFetched, players } =
@@ -26,9 +27,12 @@ export default function useRoomEvent() {
     currentQuestionHash,
   } = useQuestion();
   const { setShowAnswer } = useShowAnswer();
+  // Keep latest player object for subscription callbacks.
   const playerRef = useRef(player);
+  // Edge-detection refs to avoid repeating one-time UI actions.
   const prevAllCorrectedRef = useRef(false);
   const prevAllFetchedRef = useRef(false);
+  // Becomes true once at least one player has entered fetching state.
   const seenFetchingForQuestionRef = useRef(false);
 
   useEffect(() => {
@@ -36,12 +40,14 @@ export default function useRoomEvent() {
   }, [player]);
 
   useEffect(() => {
+    // Reset per-question progression flags when question changes.
     seenFetchingForQuestionRef.current = false;
     prevAllCorrectedRef.current = false;
     prevAllFetchedRef.current = false;
   }, [currentQuestionHash?.hash]);
 
   useEffect(() => {
+    // Mark that this question lifecycle has started fetching.
     if (
       players.some(
         (roomPlayer) => roomPlayer.fetchedStatus === FetchedStatus.fetching,
@@ -55,9 +61,10 @@ export default function useRoomEvent() {
     if (!channel) return;
 
     const unsubscribe = subscribeToEvents((event) => {
-      // Only handle events related to the current player
+      // Handle room-level events and update local stores accordingly.
       switch (event.text) {
         case ServerEvent.PlayerAnsweredCorrectly:
+          // Only the targeted player's status should be marked correct locally.
           if (event.playerId !== playerRef.current?.playerId) return;
           if (!playerRef.current) return;
           const newPlayerStat: Player = {
@@ -69,6 +76,7 @@ export default function useRoomEvent() {
 
         case ServerEvent.NewQuestion:
           {
+            // Server sends next round list; use first item as active question.
             const nextQuestionList = (
               event as { questionHash?: QuestionHashOnly[] }
             ).questionHash;
@@ -82,6 +90,7 @@ export default function useRoomEvent() {
 
             if (!playerRef.current) break;
 
+            // Reset local player state for the newly started question.
             const resetPlayerStat: Player = {
               ...playerRef.current,
               playerStatus: PlayerStatus.waiting,
@@ -94,6 +103,7 @@ export default function useRoomEvent() {
 
         case ServerEvent.PlayerWinner:
           {
+            // Navigate to results screen with winner encoded in query params.
             const winnerPlayerId = (event as { playerId?: string }).playerId;
             if (!winnerPlayerId || !roomId) break;
 
@@ -107,7 +117,6 @@ export default function useRoomEvent() {
         default:
           break;
       }
-      // Handle the event based on its type or content
     });
 
     return unsubscribe;
@@ -122,7 +131,7 @@ export default function useRoomEvent() {
     updatePlayerStats,
   ]);
 
-  // Check if all players have answered correctly or fetched the question
+  // Show answer panel exactly once when everyone is fetched and correct.
   useEffect(() => {
     if (
       seenFetchingForQuestionRef.current &&
@@ -136,7 +145,7 @@ export default function useRoomEvent() {
     prevAllCorrectedRef.current = isAllPlayerCorrected;
   }, [isAllPlayerCorrected, isAllPlayerFetched, setShowAnswer]);
 
-  // check is all player fetched the question, if yes show picture
+  // Reveal picture once when all players finish fetching.
   useEffect(() => {
     if (isAllPlayerFetched && !prevAllFetchedRef.current) {
       showPicture();

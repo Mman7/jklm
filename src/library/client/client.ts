@@ -13,29 +13,35 @@ export const hostRoom = async ({
 }: {
   playerId: string;
 }): Promise<Room> => {
+  // Ask server to create a new room owned by this player.
   const req: CreateRoomRequest = { playerId: playerId };
   return ky.post("/api/room", { json: req }).json<Room>();
 };
 
 export const generateNameWithUUID = (name: string): string => {
+  // Create a display name with a stable uniqueness suffix.
   return `${name}-${generateUID()}`;
 };
 
 export const getUserToken = ({
   playerId,
 }: createTokenRequest): Promise<TokenRequest> => {
+  // Retrieve short-lived Ably token credentials from backend.
   return ky.post("/api/ably-token", { json: playerId }).json<TokenRequest>();
 };
 
 export const getRoom = (roomId: string): Promise<Room> => {
+  // Fetch one room by id.
   return ky.get(`/api/room/${roomId}`).json<Room>();
 };
 
 export const getAllRooms = (): Promise<Room[]> => {
+  // Fetch public/available room list.
   return ky.get("/api/room/all").json<Room[]>();
 };
 
 export const noticeServerNewQuestion = (roomId: string) => {
+  // Trigger server-side new-question event fan-out.
   const req: EventRequestBody = {
     type: ServerEvent.NewQuestion,
     roomId,
@@ -44,9 +50,11 @@ export const noticeServerNewQuestion = (roomId: string) => {
 };
 
 export const getQuestion = (question: QuestionHashOnly): Promise<Question> => {
+  // Resolve full question payload from hash-only descriptor.
   return ky.get(`/api/question/${question.hash}`).json<Question>();
 };
 
 export const getAnswer = (questionHash: string): Promise<string> => {
+  // Retrieve answer string for validation/comparison.
   return ky.get(`/api/question/${questionHash}/answer`).json<string>();
 };

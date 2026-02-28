@@ -27,39 +27,52 @@ export default function Home() {
   const { setRoom, channel } = useRoom();
 
   useEffect(() => {
+    // Reset stale client state if an old channel instance leaks into home.
     if (channel) location.reload();
   }, [channel]);
 
   const handleHostRoom = async () => {
+    // Name/profile must exist before creating a room.
     if (!isUserValid) {
       setShowNameDialog(true);
       return;
     }
+
+    // Show global loading while creating room on backend.
     setShowLoading(true);
 
     await hostRoom({ playerId }).then((room: Room) => {
+      // Persist room in store, then navigate to room route.
       router.push(`/${room.id}`);
       setRoom(room);
     });
+
+    // End loading state after host flow settles.
     setShowLoading(false);
   };
 
   const handleJoinRoom = async () => {
+    // Require valid user identity before joining.
     if (!isUserValid) {
       setShowNameDialog(true);
       return;
     }
+
+    // Show loading while validating room code with server.
     setShowLoading(true);
 
     await getRoom(dialogCode)
       .then((room: Room) => {
+        // Room exists: cache and navigate.
         setRoom(room);
         router.push(`/${room.id}`);
       })
       .catch(() => {
+        // Invalid code: open not-found dialog.
         setNotFound(true);
       });
 
+    // Hide loading spinner regardless of join result.
     setShowLoading(false);
   };
 
@@ -75,7 +88,7 @@ export default function Home() {
         }}
       ></div>
 
-      <section className="relative shrink-0 flex flex-col gap-8 lg:flex-row lg:gap-12">
+      <section className="relative flex shrink-0 flex-col gap-8 lg:flex-row lg:gap-12">
         {/* Left Content */}
         <div className="flex flex-1 flex-col justify-center gap-6">
           <div>
@@ -94,17 +107,20 @@ export default function Home() {
           <section className="flex flex-col gap-3 pt-4 sm:flex-row">
             <button
               className="btn btn-primary btn-lg rounded-full font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              // Start host-room flow.
               onClick={() => handleHostRoom()}
             >
               Host Room
             </button>
             <button
               className="btn btn-secondary btn-lg rounded-full font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              // Open dialog to enter room code.
               onClick={() => setOpenJoinDialog(true)}
             >
               Join Room
             </button>
             <JoinDialog
+              // Controlled dialog for room-code join flow.
               open={openJoinDialog}
               setClose={() => setOpenJoinDialog(false)}
               setDialogCode={setDialogCode}
@@ -116,7 +132,7 @@ export default function Home() {
 
         {/* Right Content */}
         <div className="flex flex-1 flex-col gap-8">
-          <div className="border-base-content/10 from-primary/10 to-secondary/10 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-8 backdrop-blur-sm">
+          <div className="border-base-content/10 from-primary/10 to-secondary/10 relative overflow-hidden rounded-2xl border bg-linear-to-br p-8 backdrop-blur-sm">
             {/* Decorative accent */}
             <div className="bg-primary/10 pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full blur-2xl"></div>
 
@@ -153,41 +169,14 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="border-base-content/10 bg-base-100/50 relative shrink-0 rounded-2xl border p-8 backdrop-blur-sm">
-        {/* Decorative circle */}
-        <div className="bg-primary/5 pointer-events-none absolute -top-20 -right-20 h-40 w-40 rounded-full blur-2xl"></div>
-        <div className="bg-secondary/5 pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full blur-2xl"></div>
-
-        <h2 className="mb-8 text-3xl font-bold">Why play JKLM?</h2>
-        <div className="relative grid gap-6 md:grid-cols-3">
-          <div className="space-y-2">
-            <h4 className="text-primary text-lg font-semibold">
-              Real-time Gameplay
-            </h4>
-            <p className="text-base-content/70 leading-relaxed">
-              Instant feedback and live competition that keeps everyone engaged.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="text-primary text-lg font-semibold">Simple Setup</h4>
-            <p className="text-base-content/70 leading-relaxed">
-              Host or join in just a few clicks, no complicated configurations.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="text-primary text-lg font-semibold">Fast Rounds</h4>
-            <p className="text-base-content/70 leading-relaxed">
-              Short, exciting sessions perfect for groups of any size.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <div className="min-h-0 flex-1">
+        {/* Live list of available rooms. */}
         <RoomList />
       </div>
 
       <Dialog
+        // Modal shown when entered room code is not found.
         open={showNotFound}
         className="w-xs"
         onClose={() => setNotFound(false)}

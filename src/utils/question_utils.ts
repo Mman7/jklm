@@ -2,14 +2,17 @@ import { readFileSync } from "fs";
 import path from "path";
 import { Challenge, Question, QuestionHashOnly } from "../types/question";
 
+// Static data files generated during prebuild.
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
 const indexPath = path.join(process.cwd(), "public/data/questions_paths.json");
 
 const answersFile = readFileSync(answersPath, "utf-8");
 const parseFile = JSON.parse(answersFile);
 
+// In-memory hash -> relative file path index for fast question lookups.
 const questionPathMap = loadQuestionPathMap();
 
+// Cache parsed questions to avoid refetching/JSON parsing for repeated rounds.
 const questionCache = new Map<string, Question>();
 
 function loadQuestionPathMap(): Record<string, string> {
@@ -24,6 +27,7 @@ function loadQuestionPathMap(): Record<string, string> {
 }
 
 export function getRandomQuestions(count: number = 10) {
+  // Randomly pick hashes from the index. Duplicates are currently allowed.
   const hashes = Object.keys(questionPathMap);
   const questions: QuestionHashOnly[] = [];
 
@@ -38,18 +42,20 @@ export function getRandomQuestions(count: number = 10) {
 }
 
 function generateCountTime() {
-  // Set end time to 10 seconds from now
+  // Round countdown baseline: 10 seconds from "now".
   return Date.now() + 10_000;
 }
 
 export async function getQuestion(
   questionHash: string,
 ): Promise<Question | null> {
+  // Load full question payload by hash.
   const question = await readQuestionByHash(questionHash);
   if (!question) {
     return null;
   }
 
+  // Inject per-request round end time into challenge metadata.
   question.challenge.end_time = generateCountTime();
 
   // return question ? removeAnswerFromQuestion(question) : null;
@@ -62,21 +68,25 @@ export async function getQuestion(
 // }
 
 export async function getChallenge(hash: string): Promise<null | Challenge> {
+  // Lightweight helper for challenge-only consumers.
   const question = await readQuestionByHash(hash);
   return question ? question.challenge : null;
 }
 
 async function readQuestionByHash(hash: string): Promise<Question | null> {
+  // Return cached object when available.
   const cachedQuestion = questionCache.get(hash);
   if (cachedQuestion) {
     return cachedQuestion;
   }
 
+  // Resolve relative data file path from hash index.
   const relativePath = questionPathMap[hash];
   if (!relativePath) {
     return null;
   }
 
+  // Fetch from public data endpoint; no-store to avoid stale edge/client cache.
   const response = await fetch(`${getBaseUrl()}/data/${relativePath}`, {
     cache: "no-store",
   });
@@ -90,6 +100,7 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
 }
 
 function getBaseUrl() {
+  // Prefer explicit public URL envs, then deployment URL, then localhost.
   return (
     process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.URL ||
@@ -99,6 +110,7 @@ function getBaseUrl() {
 }
 
 export async function findAnswer(hash: string): Promise<string> {
+  // Constant-time lookup from precomputed hash -> answer map.
   return parseFile[hash];
 }
 
@@ -107,18 +119,20 @@ export async function AnswerComparator(
   submitAnswer: string,
 ) {
   if (!submitAnswer || !submitAnswer.trim()) {
-    return false; // Prevent empty or whitespace-only answers
+    // Prevent empty or whitespace-only answers.
+    return false;
   }
 
+  // Case-insensitive + trimmed comparison.
   const normalizedStore = answerInStore.trim().toLowerCase();
   const normalizedSubmit = submitAnswer.trim().toLowerCase();
 
-  // Check exact match
+  // Exact full-string match wins.
   if (normalizedStore === normalizedSubmit) {
     return true;
   }
 
-  // Split submit answer by space and check if any part matches store answer
+  // Fallback: any token in submitted text can match the expected answer.
   const submitParts = normalizedSubmit.split(" ");
   return submitParts.includes(normalizedStore);
 }

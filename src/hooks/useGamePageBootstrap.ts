@@ -35,9 +35,11 @@ export default function useGamePageBootstrap({
   currentQuestionHash,
   setCurrentQuestionHash,
 }: UseGamePageBootstrapParams) {
+  // Avoid re-initializing player stats more than once per room+player pair.
   const initializedPlayerKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // Prompt for name setup when user identity is not valid.
     if (!isUserValid) {
       setShowNameDialog(true);
     } else {
@@ -47,9 +49,11 @@ export default function useGamePageBootstrap({
 
   useEffect(() => {
     if (!mounted) return;
+    // Initialize Ably channel for the room and expose it to store/state.
     const ch = initAbly({ roomId, playerId });
     setChannel(ch);
     return () => {
+      // Cleanup realtime presence/channel on page unmount or room switch.
       leaveRoom();
     };
   }, [mounted, roomId, playerId, setChannel]);
@@ -61,6 +65,7 @@ export default function useGamePageBootstrap({
     if (initializedPlayerKeyRef.current === initKey) return;
     initializedPlayerKeyRef.current = initKey;
 
+    // Seed local player stats from persisted room score when available.
     const scores = room?.scores?.[playerId];
     updatePlayerStats({
       name: name,
@@ -75,10 +80,12 @@ export default function useGamePageBootstrap({
   useEffect(() => {
     if (!room) return;
 
+    // Prefer current store question list; otherwise fall back to room snapshot.
     const sourceQuestionList =
       questionList.length > 0 ? questionList : (room.questionList ?? []);
     if (sourceQuestionList.length === 0) return;
 
+    // Keep current question aligned with the active question list.
     const hasValidCurrentQuestion =
       !!currentQuestionHash &&
       sourceQuestionList.some((q) => q.hash === currentQuestionHash.hash);
