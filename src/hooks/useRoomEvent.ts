@@ -34,6 +34,8 @@ export default function useRoomEvent() {
   const prevAllFetchedRef = useRef(false);
   // Becomes true once at least one player has entered fetching state.
   const seenFetchingForQuestionRef = useRef(false);
+  // Becomes true once at least one player is observed not-yet-correct for this question.
+  const seenNonCorrectForQuestionRef = useRef(false);
 
   useEffect(() => {
     playerRef.current = player;
@@ -42,6 +44,7 @@ export default function useRoomEvent() {
   useEffect(() => {
     // Reset per-question progression flags when question changes.
     seenFetchingForQuestionRef.current = false;
+    seenNonCorrectForQuestionRef.current = false;
     prevAllCorrectedRef.current = false;
     prevAllFetchedRef.current = false;
   }, [currentQuestionHash?.hash]);
@@ -54,6 +57,16 @@ export default function useRoomEvent() {
       )
     ) {
       seenFetchingForQuestionRef.current = true;
+    }
+
+    // Mark that this question has entered an active answering phase and is not
+    // still in the previous question's "all correct" carry-over state.
+    if (
+      players.some(
+        (roomPlayer) => roomPlayer.playerStatus !== PlayerStatus.answer_correct,
+      )
+    ) {
+      seenNonCorrectForQuestionRef.current = true;
     }
   }, [players]);
 
@@ -135,6 +148,7 @@ export default function useRoomEvent() {
   useEffect(() => {
     if (
       seenFetchingForQuestionRef.current &&
+      seenNonCorrectForQuestionRef.current &&
       isAllPlayerFetched &&
       isAllPlayerCorrected &&
       !prevAllCorrectedRef.current

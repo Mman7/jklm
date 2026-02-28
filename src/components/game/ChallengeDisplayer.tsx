@@ -34,7 +34,7 @@ export default function ChallengeDisplayer() {
       const questions = await getQuestions(
         hashes.map((hash: string) => ({ hash })),
       );
-      console.log(questionList);
+      console.log(questions);
       if (!questions || questions.length === 0) {
         throw new Error("Questions not found");
       }
