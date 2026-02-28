@@ -38,6 +38,8 @@ export default function useDataSyncManager() {
     hash: string;
     endTimeMs: number;
   } | null>(null);
+  const syncSeqRef = useRef(0);
+  const lastAppliedSyncSeqRef = useRef<Record<string, number>>({});
   // Prevent repeatedly applying the same targeted sync payload.
   const hasAppliedIncomingSyncRef = useRef(false);
   const showAnswerRef = useRef(showAnswer);
@@ -62,6 +64,7 @@ export default function useDataSyncManager() {
     // New question means old sync guards are no longer valid.
     hasAppliedIncomingSyncRef.current = false;
     pendingSyncedEndTimeRef.current = null;
+    lastAppliedSyncSeqRef.current = {};
   }, [currentQuestionHash?.hash]);
 
   const sendSync = useCallback(
@@ -96,6 +99,7 @@ export default function useDataSyncManager() {
       sendSyncData({
         requesterId,
         senderId: playerId,
+        seq: (syncSeqRef.current += 1),
         syncData,
       });
     },
@@ -139,6 +143,16 @@ export default function useDataSyncManager() {
       const localHash = questionRef.current?.hash;
       const isSameQuestion = localHash === incomingHash;
       const hasLocalQuestion = !!localHash;
+      const sourceKey = `${dataMessage.senderId}:${incomingHash}`;
+      const hasSequence = typeof dataMessage.seq === "number";
+      const incomingSeq = dataMessage.seq ?? 0;
+      const lastAppliedSeq = lastAppliedSyncSeqRef.current[sourceKey] ?? -1;
+
+      if (hasSequence && incomingSeq <= lastAppliedSeq) return;
+
+      if (hasSequence) {
+        lastAppliedSyncSeqRef.current[sourceKey] = incomingSeq;
+      }
 
       // For targeted sync, apply once per same-question context.
       if (isTargetedToMe && hasAppliedIncomingSyncRef.current && isSameQuestion)
@@ -163,7 +177,7 @@ export default function useDataSyncManager() {
 
       const syncedEndTimeMs = Date.now() + Math.max(syncData.timer.totalMs, 0);
       const questionHash = syncData.currentQuestionHash.hash;
-      const localCurrentQuestion = currentQuestion;
+      const localCurrentQuestion = currentQuestionRef.current;
 
       if (
         localCurrentQuestion &&
@@ -201,7 +215,7 @@ export default function useDataSyncManager() {
   useEffect(() => {
     // Apply deferred sync timing once matching question data becomes available.
     const pendingSync = pendingSyncedEndTimeRef.current;
-    const localCurrentQuestion = currentQuestion;
+    const localCurrentQuestion = currentQuestionRef.current;
 
     if (!pendingSync || !localCurrentQuestion) return;
     if (localCurrentQuestion.challenge.hash !== pendingSync.hash) return;

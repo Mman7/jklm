@@ -18,6 +18,8 @@ export interface SyncDataMessage {
   type: "sync_data";
   requesterId: string;
   senderId: string;
+  seq: number;
+  sentAt: number;
   payload: SyncData;
 }
 

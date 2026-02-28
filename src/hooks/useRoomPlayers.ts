@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Ably from "ably";
 import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
 import { Player } from "../types/player";
@@ -9,9 +9,7 @@ import { Player } from "../types/player";
  */
 export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [isAllPlayerCorrected, setIsAllPlayerCorrected] =
-    useState<boolean>(false);
-  const [isAllPlayerFetched, setIsAllPlayerFetched] = useState<boolean>(false);
+  const presenceFetchVersionRef = useRef(0);
 
   // Subscribe to Ably presence changes and fetch initial players
   useEffect(() => {
@@ -19,7 +17,9 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
 
     // Fetch current members from the channel
     const updatePlayers = async () => {
+      const fetchVersion = ++presenceFetchVersionRef.current;
       const members = await channel.presence.get();
+      if (fetchVersion !== presenceFetchVersionRef.current) return;
       setPlayers(members.map((m) => m.data as Player));
     };
 
@@ -38,26 +38,21 @@ export function useRoomPlayers(channel: Ably.RealtimeChannel | null) {
     };
   }, [channel]);
 
-  // Update all-player status flags whenever the players list changes
-  useEffect(() => {
-    if (players.length === 0) {
-      setIsAllPlayerCorrected(false);
-      setIsAllPlayerFetched(false);
-      return;
-    }
+  const isAllPlayerCorrected = useMemo(
+    () =>
+      players.length > 0 &&
+      players.every(
+        (player) => player.playerStatus === PlayerStatus.answer_correct,
+      ),
+    [players],
+  );
 
-    // Check if all players answered correctly
-    const allCorrected = players.every(
-      (player) => player.playerStatus === PlayerStatus.answer_correct,
-    );
-    setIsAllPlayerCorrected(allCorrected);
-
-    // Check if all players have fetched data
-    const allReady = players.every(
-      (player) => player.fetchedStatus === FetchedStatus.fetched,
-    );
-    setIsAllPlayerFetched(allReady);
-  }, [players]);
+  const isAllPlayerFetched = useMemo(
+    () =>
+      players.length > 0 &&
+      players.every((player) => player.fetchedStatus === FetchedStatus.fetched),
+    [players],
+  );
 
   return { players, isAllPlayerCorrected, isAllPlayerFetched };
 }

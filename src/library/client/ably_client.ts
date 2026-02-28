@@ -138,10 +138,12 @@ export async function ablyUpdatePlayerStats(playerProps: Player) {
 export function sendSyncData({
   requesterId,
   senderId,
+  seq,
   syncData,
 }: {
   requesterId: string;
   senderId: string;
+  seq: number;
   syncData: SyncData;
 }) {
   if (!channel) return;
@@ -150,6 +152,8 @@ export function sendSyncData({
     type: "sync_data",
     requesterId,
     senderId,
+    seq,
+    sentAt: Date.now(),
     payload: syncData,
   } satisfies SyncMessage);
 }

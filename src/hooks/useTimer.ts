@@ -47,8 +47,8 @@ export default function useTimer(endTimeMs: number | null, paused = false) {
     };
   };
 
-  // Initialize time left state based on the initial endTimeMs
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(endTimeMs));
+  // Initialize as zero and let effects compute real values to avoid impure render-time reads.
+  const [timeLeft, setTimeLeft] = useState({ totalMs: 0, isExpired: false });
 
   // Effect: Syncs the hook's local state with the global game store whenever totalMs changes
   useEffect(() => {
@@ -81,7 +81,7 @@ export default function useTimer(endTimeMs: number | null, paused = false) {
     }
 
     setTimeLeft(calculateTimeLeft(endTimeMs));
-  }, [endTimeMs]);
+  }, [endTimeMs, paused]);
 
   // Effect: Handles pause/resume logic by manipulating effectiveEndTimeRef based on previous state
   useEffect(() => {
