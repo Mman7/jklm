@@ -23,19 +23,24 @@ export default function RoomCard({ room }: { room: Room }) {
     // Show loading state while requesting latest room snapshot.
     setShowLoading(true);
 
-    getRoom(room.id)
-      .then((room: Room) => {
-        // Room exists: cache it locally, then route to room page.
-        setRoom(room);
-        router.push(`/${room.id}`);
-      })
-      .catch((err) => {
-        // Log fetch/join failures for debugging.
-        console.log(err);
-      });
+    // Let React paint loading state before starting async work.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
 
-    // Hide loading indicator after join request flow is triggered.
-    setShowLoading(false);
+    try {
+      const roomData: Room = await getRoom(room.id);
+
+      // Room exists: cache it locally, then route to room page.
+      setRoom(roomData);
+      router.push(`/${roomData.id}`);
+    } catch (err) {
+      // Log fetch/join failures for debugging.
+      console.log(err);
+    } finally {
+      // Hide loading indicator after join request flow completes.
+      setShowLoading(false);
+    }
   };
 
   return (
