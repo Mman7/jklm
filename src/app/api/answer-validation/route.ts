@@ -1,39 +1,9 @@
-import { alertPlayerCorrect } from "@/src/library/server/ably";
-import { addScore as addScoreToDatabase } from "@/src/library/server/database";
-import { AnswerComparator, findAnswer } from "@/src/utils/question_utils";
+import { validateAnswerSubmission } from "@/src/library/server/answer_validation";
+import { AnswerValidationRequest } from "@/src/types/answer_validation";
 
-export interface AnswerValidationRequest {
-  playerId: string;
-  roomId: string;
-  questionHash: string;
-  answerSubmit: string;
-}
-
-export interface AnswerValidationResponse {
-  correct: boolean;
-  score?: number;
-}
 export async function POST(req: Request) {
   const body = await req.json();
-  const {
-    questionHash,
-    answerSubmit,
-    playerId,
-    roomId,
-  }: AnswerValidationRequest = body;
-  const answerInStore: string = await findAnswer(questionHash);
-  const isCorrect = await AnswerComparator(answerInStore, answerSubmit);
-
-  let score: number | undefined;
-  if (isCorrect) {
-    score = await addScoreToDatabase(playerId, roomId);
-    // alert player correct
-    alertPlayerCorrect(playerId, roomId);
-  }
-
-  const response: AnswerValidationResponse = {
-    correct: isCorrect,
-    score: score,
-  };
+  const request: AnswerValidationRequest = body;
+  const response = await validateAnswerSubmission(request);
   return Response.json(response);
 }

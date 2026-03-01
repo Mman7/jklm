@@ -5,7 +5,7 @@ import useQuestion from "../zustands/useQuestionStore";
 import {
   AnswerValidationRequest,
   AnswerValidationResponse,
-} from "../app/api/answer-validation/route";
+} from "../types/answer_validation";
 import useRoom from "../zustands/useRoomStore";
 import { Player } from "../types/player";
 import { PlayerStatus } from "../types/enum/player_status";
@@ -17,15 +17,33 @@ import { PlayerStatus } from "../types/enum/player_status";
 async function validateAnswer(
   body: AnswerValidationRequest,
 ): Promise<AnswerValidationResponse> {
-  const res = await fetch("/api/answer-validation", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  return data;
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+  const endpoints = isLocalhost
+    ? ["/api/answer-validation", "/edge/answer-validation"]
+    : ["/edge/answer-validation", "/api/answer-validation"];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        return response.json();
+      }
+    } catch {
+      // Try the next endpoint fallback.
+    }
+  }
+
+  throw new Error("Failed to validate answer");
 }
 
 /**

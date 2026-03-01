@@ -30,10 +30,10 @@ export function isTokenExpired(tokenDetails: any) {
 }
 
 // alert player correct answer
-export function alertPlayerCorrect(playerId: string, roomId: string) {
+export async function alertPlayerCorrect(playerId: string, roomId: string) {
   // Publish room-scoped gameplay event.
   const channel = ably.channels.get(`room-${roomId}`);
-  channel.publish("events", {
+  await channel.publish("events", {
     text: ServerEvent.PlayerAnsweredCorrectly,
     playerId,
     timestamp: Date.now(),
