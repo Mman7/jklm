@@ -55,25 +55,33 @@ export default function PlayerInput() {
   const { room, player, updatePlayerStats } = useRoom();
   const { currentQuestionHash } = useQuestion();
   const [inputValue, setInputValue] = useState<string>("");
+  const isAnswerLocked = player?.playerStatus === PlayerStatus.answer_correct;
 
   /**
    * Event handler triggered when a key is pressed in the input field.
    * Validates the answer upon hitting "Enter" and updates local player stats if correct.
    */
   const handleKeyDown = async (event: any) => {
+    if (isAnswerLocked) return;
+
     if (event.key === "Enter") {
-      // Send the answer to the real-time messaging service (Ably)
-      sendMessage(inputValue, playerId);
+      const submittedAnswer = inputValue.trim();
+      if (!submittedAnswer) return;
 
       // Construct the request body for the API validation endpoint
       const body: AnswerValidationRequest = {
         playerId: playerId,
         roomId: room?.id || "", // You need to provide the roomId here
         questionHash: currentQuestionHash?.hash || "",
-        answerSubmit: inputValue,
+        answerSubmit: submittedAnswer,
       };
 
       const response = await validateAnswer(body);
+
+      if (!response.correct) {
+        // Wrong answers are visible in chat.
+        sendMessage(submittedAnswer, playerId);
+      }
 
       // If the server confirms the answer is correct and returns a score,
       // update the local player object with the new score.
@@ -101,15 +109,19 @@ export default function PlayerInput() {
     // Footer container with a negative margin-top to overlap content, flex layout for centering,
     // fixed height, and a glass-styled background.
     <footer className="border-base-content/10 bg-base-100/80 -mt-6 flex h-14 w-full items-center border-t p-4 shadow-lg backdrop-blur-xl">
-      <input
-        value={inputValue}
-        // Binds the onChange event to the onChanged function
-        onChange={(e) => onChanged(e)}
-        // Binds the onKeyDown event to the handleKeyDown function
-        onKeyDown={handleKeyDown}
-        placeholder="Type your answer and press Enter..."
-        className="border-base-content/20 bg-base-100/60 focus:border-primary focus:ring-primary/20 h-full w-full rounded-2xl border p-6 px-4 backdrop-blur-xl transition-all focus:ring-2 focus:outline-none"
-      ></input>
+      {isAnswerLocked ? (
+        <input
+          value={inputValue}
+          // Binds the onChange event to the onChanged function
+          onChange={(e) => onChanged(e)}
+          // Binds the onKeyDown event to the handleKeyDown function
+          onKeyDown={handleKeyDown}
+          placeholder="Type your answer and press Enter..."
+          className="border-base-content/20 bg-base-100/60 focus:border-primary focus:ring-primary/20 h-full w-full rounded-2xl border p-6 px-4 backdrop-blur-xl transition-all focus:ring-2 focus:outline-none"
+        ></input>
+      ) : (
+        <h1 className="m-auto">You are correct!</h1>
+      )}
     </footer>
   );
 }
