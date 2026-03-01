@@ -47,7 +47,24 @@ export default function useRoomEvent() {
     seenNonCorrectForQuestionRef.current = false;
     prevAllCorrectedRef.current = false;
     prevAllFetchedRef.current = false;
-  }, [currentQuestionHash?.hash]);
+
+    // Every new question must start from a clean local player status.
+    // Each client resets itself, which propagates to all peers via presence update.
+    if (!playerRef.current) return;
+
+    if (
+      playerRef.current.playerStatus !== PlayerStatus.waiting ||
+      playerRef.current.fetchedStatus !== FetchedStatus.fetching
+    ) {
+      const resetPlayerStat: Player = {
+        ...playerRef.current,
+        playerStatus: PlayerStatus.waiting,
+        fetchedStatus: FetchedStatus.fetching,
+      };
+
+      updatePlayerStats(resetPlayerStat);
+    }
+  }, [currentQuestionHash?.hash, updatePlayerStats]);
 
   useEffect(() => {
     // Mark that this question lifecycle has started fetching.
