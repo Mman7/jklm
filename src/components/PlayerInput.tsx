@@ -109,7 +109,7 @@ export default function PlayerInput() {
     // Footer container with a negative margin-top to overlap content, flex layout for centering,
     // fixed height, and a glass-styled background.
     <footer className="border-base-content/10 bg-base-100/80 -mt-6 flex h-14 w-full items-center border-t p-4 shadow-lg backdrop-blur-xl">
-      {isAnswerLocked ? (
+      {!isAnswerLocked ? (
         <input
           value={inputValue}
           // Binds the onChange event to the onChanged function
