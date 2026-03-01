@@ -75,6 +75,7 @@ export default function PlayerInput() {
         questionHash: currentQuestionHash?.hash || "",
         answerSubmit: submittedAnswer,
       };
+      setInputValue("");
 
       const response = await validateAnswer(body);
 
@@ -93,7 +94,6 @@ export default function PlayerInput() {
       }
 
       // Clear the input field after submission
-      setInputValue("");
     }
   };
 
