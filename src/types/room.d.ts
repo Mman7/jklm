@@ -1,4 +1,4 @@
-import { Question, QuestionHashOnly } from "./question";
+import { QuestionHashOnly } from "./question";
 
 export interface Room {
   createdAt: Date;
