@@ -17,7 +17,7 @@ export async function validateAnswerSubmission(
   let score: number | undefined;
 
   if (isCorrect) {
-    score = await addScoreToDatabase(playerId, roomId);
+    score = await addScoreToDatabase(playerId, roomId, questionHash);
     await alertPlayerCorrect(playerId, roomId);
   }
 

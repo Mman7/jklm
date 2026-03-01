@@ -1,6 +1,7 @@
 import { PlayerStatus } from "@/src/types/enum/player_status";
 import { Player } from "@/src/types/player";
 import useAuth from "@/src/zustands/useAuthStore";
+import useGame from "@/src/zustands/useGameStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useEffect, useState } from "react";
 
@@ -10,14 +11,36 @@ interface PlayerCardProps {
 
 export default function PlayerCard({ player }: PlayerCardProps) {
   const { lastChat } = useRoom();
+  const { timer } = useGame();
   const { playerId } = useAuth();
   const [lastMessage, setLastMessage] = useState("");
+  const [answerTimeLeftMs, setAnswerTimeLeftMs] = useState<number | null>(null);
 
   useEffect(() => {
     if (lastChat.senderId === player.playerId) {
       setLastMessage(lastChat.message);
     }
   }, [lastChat]);
+
+  useEffect(() => {
+    if (player.playerStatus === PlayerStatus.answer_correct) {
+      if (answerTimeLeftMs === null && timer !== null) {
+        setAnswerTimeLeftMs(timer);
+      }
+      return;
+    }
+
+    if (answerTimeLeftMs !== null) {
+      setAnswerTimeLeftMs(null);
+    }
+  }, [answerTimeLeftMs, player.playerStatus, timer]);
+
+  const millisecondsLeft = answerTimeLeftMs;
+  const elapsedMs =
+    millisecondsLeft !== null ? Math.max(20_000 - millisecondsLeft, 0) : null;
+  const elapsedSeconds =
+    elapsedMs !== null ? Math.floor(elapsedMs / 1000) : null;
+  const elapsedMilliseconds = elapsedMs !== null ? elapsedMs % 1000 : null;
 
   return (
     <div
@@ -45,6 +68,14 @@ export default function PlayerCard({ player }: PlayerCardProps) {
             ? "CORRECTED✅"
             : lastMessage}
         </p>
+        {player.playerStatus === PlayerStatus.answer_correct &&
+          elapsedSeconds !== null &&
+          elapsedMilliseconds !== null && (
+            <h1 className="text-success text-sm font-semibold">
+              {elapsedSeconds}.{elapsedMilliseconds.toString().padStart(3, "0")}
+              s
+            </h1>
+          )}
       </section>
     </div>
   );
