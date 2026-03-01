@@ -237,7 +237,7 @@ export default function useDataSyncManager() {
     // Periodic lightweight broadcast so late joiners drift less before manual sync.
     const intervalId = setInterval(() => {
       sendSync(BROADCAST_REQUESTER_ID);
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearInterval(intervalId);
