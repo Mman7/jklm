@@ -14,6 +14,14 @@ import Dialog from "../components/dialogs/dialog";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import useRoom from "../zustands/useRoomStore";
 import useAuth from "../zustands/useAuthStore";
+import {
+  CircleHelp,
+  PenLine,
+  Rocket,
+  Search,
+  Users,
+  Trophy,
+} from "lucide-react";
 
 export default function Home() {
   const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =
@@ -104,19 +112,21 @@ export default function Home() {
             </p>
           </div>
 
-          <section className="flex flex-col gap-3 pt-4 sm:flex-row">
+          <section className="flex flex-col gap-3 pt-4">
             <button
-              className="btn btn-primary btn-lg rounded-full font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="btn btn-primary btn-lg rounded-xl font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
               // Start host-room flow.
               onClick={() => handleHostRoom()}
             >
+              <Rocket size={20} />
               Host Room
             </button>
             <button
-              className="btn btn-secondary btn-lg rounded-full font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="btn btn-secondary btn-lg rounded-xl font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
               // Open dialog to enter room code.
               onClick={() => setOpenJoinDialog(true)}
             >
+              <Search size={20} />
               Join Room
             </button>
             <JoinDialog
@@ -136,7 +146,10 @@ export default function Home() {
             {/* Decorative accent */}
             <div className="bg-primary/10 pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full blur-2xl"></div>
 
-            <h2 className="relative mb-4 text-3xl font-bold">About JKLM</h2>
+            <h2 className="relative mb-4 flex items-center gap-3 text-3xl font-bold">
+              <CircleHelp className="text-primary" size={28} />
+              About JKLM
+            </h2>
             <p className="text-base-content/80 relative mb-6 leading-relaxed">
               JKLM is a multiplayer guessing game where each round reveals a new
               challenge. Every correct answer increases your score, and the
@@ -146,21 +159,21 @@ export default function Home() {
             <h3 className="mb-4 text-xl font-semibold">How it works</h3>
             <ul className="text-base-content/80 space-y-3">
               <li className="flex items-start gap-3">
-                <span className="text-primary">▸</span>
+                <Rocket className="text-primary mt-0.5 shrink-0" size={16} />
                 <span>Host creates a room and shares the room code.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-primary">▸</span>
+                <Users className="text-primary mt-0.5 shrink-0" size={16} />
                 <span>Players join and wait for the question to start.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-primary">▸</span>
+                <PenLine className="text-primary mt-0.5 shrink-0" size={16} />
                 <span>
                   Submit answers in the input field as fast as possible.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-primary">▸</span>
+                <Trophy className="text-primary mt-0.5 shrink-0" size={16} />
                 <span>Scores update live for everyone in the room.</span>
               </li>
             </ul>

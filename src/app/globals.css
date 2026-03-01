@@ -90,3 +90,7 @@ html {
 .animate-pulse-glow {
   animation: pulse-glow 4s ease-in-out infinite;
 }
+
+button {
+  @apply transition-all duration-300;
+}

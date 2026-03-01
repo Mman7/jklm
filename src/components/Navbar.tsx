@@ -29,13 +29,13 @@ export default function Navbar() {
       </div>
       <div className="navbar-center">{/* content center */}</div>
       <div className="navbar-end">
-        <div className="dropdown dropdown-end">
+        <div className="dropdown dropdown-end rounded-2xl bg-gray-200 p-1.5">
           <button
             type="button"
             tabIndex={0}
             className="btn btn-ghost hover:bg-base-content/5 w-full justify-end"
           >
-            <div className="ring-base-content/20 h-10 w-10 overflow-hidden rounded-full ring-2">
+            <div className="h-10 w-10 overflow-hidden rounded-full ring-2">
               <img
                 src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
                 alt="avatar"
