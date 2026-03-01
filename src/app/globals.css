@@ -6,22 +6,14 @@
   @apply transition-colors duration-200;
 }
 
-/* Better scrollbar styling for webkit browsers */
+/* Hide scrollbar while keeping scroll functionality */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-base-200/50;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-base-content/20 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-base-content/30;
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
 /* Smooth scroll behavior */

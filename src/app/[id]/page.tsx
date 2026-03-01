@@ -5,6 +5,7 @@ import GameJoinStatus from "@/src/components/game/GameJoinStatus";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
 import TimerBar from "@/src/components/Timer";
+import Correct from "@/src/components/game/correct";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useDataSyncManager from "@/src/hooks/useDataSyncManager";
 import useGamePageBootstrap from "@/src/hooks/useGamePageBootstrap";
@@ -21,11 +22,12 @@ import useQuestion from "@/src/zustands/useQuestionStore";
 import useNameDialog from "@/src/zustands/useNameDialogStore";
 import useRoom from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useRoomInitializer from "@/src/hooks/useRoomInitializer";
 import useShowAnswer from "@/src/zustands/useShowAnswerStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
+import { PlayerStatus } from "@/src/types/enum/player_status";
 
 export default function GamePage() {
   const { playerId, name } = useAuth();
@@ -43,6 +45,10 @@ export default function GamePage() {
   const [joinedQuestionHash, setJoinedQuestionHash] = useState<string | null>(
     null,
   );
+  const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
+  const [lastCorrectQuestionHash, setLastCorrectQuestionHash] = useState<
+    string | null
+  >(null);
   const { sendReqSync } = useDataSyncManager();
   const { playerInputContainerRef } = usePlayerInputAutoFocus({
     currentQuestionHash,
@@ -50,6 +56,22 @@ export default function GamePage() {
     joinedQuestionHash,
     showAnswer,
   });
+
+  // Show correct animation when player answers correctly
+  useEffect(() => {
+    if (
+      player?.playerStatus === PlayerStatus.answer_correct &&
+      currentQuestionHash?.hash &&
+      lastCorrectQuestionHash !== currentQuestionHash.hash
+    ) {
+      setShowCorrectAnimation(true);
+      setLastCorrectQuestionHash(currentQuestionHash.hash);
+    }
+  }, [
+    player?.playerStatus,
+    currentQuestionHash?.hash,
+    lastCorrectQuestionHash,
+  ]);
 
   // initialize channel
   useLastChat();
@@ -111,6 +133,9 @@ export default function GamePage() {
 
   return (
     <div className="bg-base-200/50 flex h-full w-full">
+      {showCorrectAnimation && (
+        <Correct onDismiss={() => setShowCorrectAnimation(false)} />
+      )}
       {showAnswer ? (
         <ShowAnswer />
       ) : (
