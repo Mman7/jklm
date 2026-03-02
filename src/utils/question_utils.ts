@@ -108,20 +108,46 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 
   try {
-    // Read directly from the filesystem instead of using fetch
-    const questionFilePath = path.join(
-      process.cwd(),
-      "public/data",
-      relativePath,
-    );
-    const questionFile = readFileSync(questionFilePath, "utf-8");
-    const parsedQuestion = JSON.parse(questionFile) as Question;
+    // Fetch from public data endpoint to avoid bundling files into serverless functions
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}/data/${relativePath}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch question ${hash}: ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
+    const parsedQuestion = (await response.json()) as Question;
     questionCache.set(hash, parsedQuestion);
     return parsedQuestion;
   } catch (error) {
     console.error(`Failed to read question file for hash ${hash}:`, error);
     return null;
   }
+}
+
+function getBaseUrl(): string {
+  // For Netlify deployments, use URL env variable
+  if (process.env.URL) {
+    return process.env.URL;
+  }
+
+  // For other deployments or custom domains
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+
+  // For Vercel and other platforms
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Local development fallback
+  return `http://localhost:${process.env.PORT || "3000"}`;
 }
 
 export async function findAnswer(hash: string): Promise<string> {
