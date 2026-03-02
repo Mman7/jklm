@@ -35,7 +35,6 @@ export default function Correct({
         <DotLottieReact
           src="/lotties/success_confetti.lottie"
           className="aspect-square"
-          loop
           autoplay
         />
       </div>
