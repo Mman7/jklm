@@ -78,7 +78,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           {isAnswerCorrect ? (
             <>
               <CheckCircle2 size={16} />
-              CORRECT ✅
+              CORRECT
             </>
           ) : (
             lastMessage
