@@ -3,10 +3,15 @@ import dotenv from "dotenv";
 import { Room } from "@/src/types/room";
 import { noticeRoomPlayerWinner } from "./ably";
 import { QuestionHashOnly } from "@/src/types/question";
+
 dotenv.config({ path: ".env" });
 
+// Note: In serverless environments, Redis TTL handles key expiration automatically.
+// Manual cleanup jobs with setInterval won't work due to the stateless nature of serverless functions.
+// All room keys are set with ROOM_TTL_SECONDS (3 hours) and Redis will automatically remove them after expiration.
+
 const ROUND_TTL_SECONDS = 60 * 10;
-const ROOM_TTL_SECONDS = 10800;
+const ROOM_TTL_SECONDS = 10800; // 3 hours
 
 // Room "document" key (hash): stable room state fields.
 const getRoomMetaKey = (roomId: string) => `room:${roomId}:meta`;
@@ -117,7 +122,16 @@ const hydrateRoomQuestions = async (room: Room): Promise<Room> => {
 
 // Hydrate scores from dedicated score hash into returned room object.
 const hydrateRoomScores = async (room: Room): Promise<Room> => {
-  const scoreEntries = await client.hGetAll(getRoomScoresKey(room.id));
+  const scoresKey = getRoomScoresKey(room.id);
+  const scoreEntries = await client.hGetAll(scoresKey);
+
+  // Ensure scores key has TTL whenever accessed
+  const ttl = await client.ttl(scoresKey);
+  if (ttl === -1) {
+    // Key exists but has no TTL, set it
+    await client.expire(scoresKey, ROOM_TTL_SECONDS);
+  }
+
   const scores = Object.fromEntries(
     Object.entries(scoreEntries).map(([playerId, score]) => [
       playerId,
@@ -150,6 +164,7 @@ await client.connect();
 
 /**
  * Retrieves a room by its unique ID.
+ * Note: Does not refresh TTL - only updates refresh TTL to track inactivity.
  * @param id - The unique identifier of the room.
  * @returns The room data or null if not found.
  */
@@ -159,8 +174,6 @@ export const getRoomById = async (id: string): Promise<Room | null> => {
   const roomFromHash = fromRoomHashPayload(payload);
 
   if (roomFromHash) {
-    await client.expire(metaKey, ROOM_TTL_SECONDS);
-    await client.expire(getRoomQuestionsKey(id), ROOM_TTL_SECONDS);
     const roomWithQuestions = await hydrateRoomQuestions(roomFromHash);
     return hydrateRoomScores(roomWithQuestions);
   }
@@ -205,6 +218,9 @@ export const addScore = async (
     scoreToAdd,
   );
 
+  // Ensure scores key has TTL (doesn't refresh room meta TTL, scores managed separately)
+  await client.expire(getRoomScoresKey(roomId), ROOM_TTL_SECONDS);
+
   // Check if player score reaches the winning threshold (100)
   if (updatedScore >= 100) {
     // Notify the player via Ably
@@ -229,6 +245,8 @@ export const getPlayerScore = async (
 export const updateRoom = async (roomId: string, room: Room) => {
   const metaKey = getRoomMetaKey(roomId);
   const questionsKey = getRoomQuestionsKey(roomId);
+  const scoresKey = getRoomScoresKey(roomId);
+
   await client.hSet(metaKey, toRoomHashPayload(room));
   await client.expire(metaKey, ROOM_TTL_SECONDS);
 
@@ -237,6 +255,12 @@ export const updateRoom = async (roomId: string, room: Room) => {
   if (Object.keys(questionsPayload).length > 0) {
     await client.hSet(questionsKey, questionsPayload);
     await client.expire(questionsKey, ROOM_TTL_SECONDS);
+  }
+
+  // Refresh TTL on scores key if it exists
+  const scoresExist = await client.exists(scoresKey);
+  if (scoresExist) {
+    await client.expire(scoresKey, ROOM_TTL_SECONDS);
   }
 };
 
@@ -270,9 +294,25 @@ export const replaceRoomQuestionList = async (
 // Function to set a JSON key with TTL
 export const createRoom = async (room: Room) => {
   const metaKey = getRoomMetaKey(room.id);
+  const scoresKey = getRoomScoresKey(room.id);
+  const questionsKey = getRoomQuestionsKey(room.id);
+
   await client.hSet(metaKey, toRoomHashPayload(room));
   await client.expire(metaKey, ROOM_TTL_SECONDS);
-  console.log(`Key "${metaKey}" set with 3 hours expiry.`);
+
+  // Initialize empty scores hash with TTL to ensure it's tracked from the start
+  await client.hSet(scoresKey, "_init", "0");
+  await client.hDel(scoresKey, "_init");
+  await client.expire(scoresKey, ROOM_TTL_SECONDS);
+
+  // Initialize questions key with TTL if room has questions
+  if (room.questionList && room.questionList.length > 0) {
+    const questionsPayload = toQuestionsHashPayload(room.questionList);
+    await client.hSet(questionsKey, questionsPayload);
+    await client.expire(questionsKey, ROOM_TTL_SECONDS);
+  }
+
+  console.log(`Room "${room.id}" created with 3 hours expiry on all keys.`);
 };
 
 export const getAllRooms = async (): Promise<Room[]> => {

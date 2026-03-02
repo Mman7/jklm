@@ -24,10 +24,6 @@ export async function createAblyTokenRequest({ playerId }: createTokenRequest) {
     throw error;
   }
 }
-export function isTokenExpired(tokenDetails: any) {
-  // Token is invalid once its expiry timestamp is in the past.
-  return tokenDetails.expires < Date.now();
-}
 
 // alert player correct answer
 export async function alertPlayerCorrect(playerId: string, roomId: string) {

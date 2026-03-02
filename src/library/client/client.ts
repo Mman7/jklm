@@ -1,11 +1,9 @@
-import { createTokenRequest } from "@/src/app/api/ably-token/route";
 import { EventRequestBody } from "@/src/app/api/events/route";
 import { CreateRoomRequest } from "@/src/app/api/room/route";
 import { ServerEvent } from "@/src/types/enum/server_events";
 import { Question, QuestionHashOnly } from "@/src/types/question";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
-import { TokenRequest } from "ably";
 import ky from "ky";
 
 export const hostRoom = async ({
@@ -21,13 +19,6 @@ export const hostRoom = async ({
 export const generateNameWithUUID = (name: string): string => {
   // Create a display name with a stable uniqueness suffix.
   return `${name}-${generateUID()}`;
-};
-
-export const getUserToken = ({
-  playerId,
-}: createTokenRequest): Promise<TokenRequest> => {
-  // Retrieve short-lived Ably token credentials from backend.
-  return ky.post("/api/ably-token", { json: playerId }).json<TokenRequest>();
 };
 
 export const getRoom = (roomId: string): Promise<Room> => {

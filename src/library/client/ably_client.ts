@@ -75,11 +75,6 @@ export function subscribeToEvents(
   };
 }
 
-export function hasJoined(channelName: string) {
-  // Check local room-join bookkeeping.
-  return joinedChannels.has(channelName);
-}
-
 export function enterChannel(playerProps: Player) {
   if (!channel) return;
   // Presence enter announces the player and initial stats.
@@ -106,17 +101,7 @@ export async function leaveRoom() {
   // Once detached, release local channel resources.
   ably.channels.release(channel.name);
 }
-// // update last chat to persence
-
-export async function getAllPlayers() {
-  if (!channel) return;
-  // Read current presence members and normalize into app shape.
-  const members = await channel.presence.get();
-  return members.map((member) => ({
-    clientId: member.clientId,
-    ...member.data,
-  }));
-}
+// update last chat to presence
 
 // update player stats to presence
 export async function ablyUpdatePlayerStats(playerProps: Player) {
