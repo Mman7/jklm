@@ -107,27 +107,21 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
     return null;
   }
 
-  // Fetch from public data endpoint; no-store to avoid stale edge/client cache.
-  const response = await fetch(`${getBaseUrl()}/data/${relativePath}`, {
-    cache: "no-store",
-  });
-  if (!response.ok) {
+  try {
+    // Read directly from the filesystem instead of using fetch
+    const questionFilePath = path.join(
+      process.cwd(),
+      "public/data",
+      relativePath,
+    );
+    const questionFile = readFileSync(questionFilePath, "utf-8");
+    const parsedQuestion = JSON.parse(questionFile) as Question;
+    questionCache.set(hash, parsedQuestion);
+    return parsedQuestion;
+  } catch (error) {
+    console.error(`Failed to read question file for hash ${hash}:`, error);
     return null;
   }
-
-  const parsedQuestion = (await response.json()) as Question;
-  questionCache.set(hash, parsedQuestion);
-  return parsedQuestion;
-}
-
-function getBaseUrl() {
-  // Prefer explicit public URL envs, then deployment URL, then localhost.
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.URL ||
-    process.env.DEPLOY_PRIME_URL ||
-    `http://127.0.0.1:${process.env.PORT || "3000"}`
-  );
 }
 
 export async function findAnswer(hash: string): Promise<string> {
