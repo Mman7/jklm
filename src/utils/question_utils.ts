@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
-import type { Challenge, Question, QuestionHashOnly } from "../types/question";
+import type { Question, QuestionHashOnly } from "../types/question";
 
 // Static data files generated during prebuild.
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
@@ -47,22 +47,6 @@ function generateCountTime() {
   return Date.now() + 20_000;
 }
 
-export async function getQuestion(
-  questionHash: string,
-): Promise<Question | null> {
-  // Load full question payload by hash.
-  const question = await readQuestionByHash(questionHash);
-  if (!question) {
-    return null;
-  }
-
-  // Inject per-request round end time into challenge metadata.
-  question.challenge.end_time = generateCountTime();
-
-  // return question ? removeAnswerFromQuestion(question) : null;
-  return question;
-}
-
 export async function getQuestions(
   questionHashes: string[],
 ): Promise<Question[]> {
@@ -87,12 +71,6 @@ export async function getQuestions(
 //   question.answer = "";
 //   return question;
 // }
-
-export async function getChallenge(hash: string): Promise<null | Challenge> {
-  // Lightweight helper for challenge-only consumers.
-  const question = await readQuestionByHash(hash);
-  return question ? question.challenge : null;
-}
 
 async function readQuestionByHash(hash: string): Promise<Question | null> {
   // Return cached object when available.
@@ -141,11 +119,6 @@ function getBaseUrl(): string {
     return process.env.NEXT_PUBLIC_BASE_URL;
   }
 
-  // For Vercel and other platforms
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
   // Local development fallback
   return `http://localhost:${process.env.PORT || "3000"}`;
 }
@@ -173,7 +146,53 @@ export async function AnswerComparator(
     return true;
   }
 
-  // Fallback: any token in submitted text can match the expected answer.
+  // Split answer into words and remove punctuation from each word
+  const answerParts = normalizedStore.split(" ");
+  const cleanedAnswerParts = answerParts
+    .map((word) => {
+      let cleaned = "";
+      for (let i = 0; i < word.length; i++) {
+        const char = word[i];
+        const code = char.charCodeAt(0);
+        // Keep only alphanumeric characters (a-z, 0-9)
+        if ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) {
+          cleaned += char;
+        }
+      }
+      return cleaned;
+    })
+    .filter((word) => word.length > 0); // Remove empty words
+
+  // Check if all cleaned answer words appear in order in submitted text
   const submitParts = normalizedSubmit.split(" ");
+  let answerIndex = 0;
+
+  for (const submitWord of submitParts) {
+    if (answerIndex >= cleanedAnswerParts.length) {
+      break; // All answer words found
+    }
+
+    // Clean the submit word the same way
+    let cleanedSubmitWord = "";
+    for (let i = 0; i < submitWord.length; i++) {
+      const char = submitWord[i];
+      const code = char.charCodeAt(0);
+      if ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) {
+        cleanedSubmitWord += char;
+      }
+    }
+
+    // If this cleaned word matches the current expected answer word, move to next
+    if (cleanedSubmitWord === cleanedAnswerParts[answerIndex]) {
+      answerIndex++;
+    }
+  }
+
+  // If we found all answer words in order, return true
+  if (answerIndex === cleanedAnswerParts.length) {
+    return true;
+  }
+
+  // Fallback: any token in submitted text can match the expected answer.
   return submitParts.includes(normalizedStore);
 }
