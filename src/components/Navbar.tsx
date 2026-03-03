@@ -4,12 +4,15 @@ import { Menu } from "lucide-react";
 import useAuth from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
 import useNameDialog from "../zustands/useNameDialogStore";
+import useGame from "../zustands/useGameStore";
 
 export default function Navbar() {
   const { name } = useAuth();
   const { setShowNameDialog } = useNameDialog();
+  const { gameReady } = useGame();
 
   const path = usePathname();
+  const shouldHideDrawerToggle = path === "/" || gameReady;
 
   const handleChangedName = () => {
     setShowNameDialog(true);
@@ -21,7 +24,7 @@ export default function Navbar() {
         <div className="dropdown">
           <label
             htmlFor="my-drawer-3"
-            className={`btn btn-ghost btn-circle drawer-button mx-4 lg:hidden ${path === "/" && "hidden"}`}
+            className={`btn btn-ghost btn-circle drawer-button mx-4 lg:hidden ${shouldHideDrawerToggle ? "hidden" : ""}`}
           >
             <Menu />
           </label>

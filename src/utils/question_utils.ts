@@ -42,13 +42,14 @@ export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
   }));
 }
 
-function generateCountTime() {
-  // Round countdown baseline: 20 seconds from "now".
-  return Date.now() + 20_000;
+function generateCountTime(questionDurationSeconds: number = 20) {
+  // Round countdown baseline from "now".
+  return Date.now() + questionDurationSeconds * 1000;
 }
 
 export async function getQuestions(
   questionHashes: string[],
+  questionDurationSeconds: number = 20,
 ): Promise<Question[]> {
   const uniqueHashes = [...new Set(questionHashes)];
 
@@ -62,7 +63,7 @@ export async function getQuestions(
       ...question,
       challenge: {
         ...question.challenge,
-        end_time: generateCountTime(),
+        end_time: generateCountTime(questionDurationSeconds),
       },
     }));
 }

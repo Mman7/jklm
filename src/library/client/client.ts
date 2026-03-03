@@ -26,6 +26,29 @@ export const getRoom = (roomId: string): Promise<Room> => {
   return ky.get(`/api/room/${roomId}`).json<Room>();
 };
 
+export const updateRoomSettings = (
+  roomId: string,
+  {
+    playerId,
+    targetScore,
+    questionDurationSeconds,
+  }: {
+    playerId: string;
+    targetScore: number;
+    questionDurationSeconds: number;
+  },
+): Promise<Room> => {
+  return ky
+    .patch(`/api/room/${roomId}`, {
+      json: {
+        playerId,
+        targetScore,
+        questionDurationSeconds,
+      },
+    })
+    .json<Room>();
+};
+
 export const getAllRooms = (): Promise<Room[]> => {
   // Fetch public/available room list.
   return ky.get("/api/room/all").json<Room[]>();
@@ -42,6 +65,7 @@ export const noticeServerNewQuestion = (roomId: string) => {
 
 export const getQuestions = (
   questions: QuestionHashOnly[],
+  questionDurationSeconds?: number,
 ): Promise<Question[]> => {
   // Resolve all question payloads in smaller chunks to avoid oversized
   // serverless responses on providers like Netlify.
@@ -60,7 +84,10 @@ export const getQuestions = (
       hashChunks.map((chunkHashes) =>
         ky
           .post("/api/question/batch", {
-            json: { hashes: chunkHashes },
+            json: {
+              hashes: chunkHashes,
+              questionDurationSeconds,
+            },
           })
           .json<Question[]>(),
       ),

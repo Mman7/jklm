@@ -10,6 +10,8 @@ import { Question } from "@/src/types/question";
 import SvgBase64Image from "./SvgBase64Image";
 import Base64Image from "./Base64Image";
 
+const DEFAULT_QUESTION_DURATION_SECONDS = 20;
+
 export default function ChallengeDisplayer() {
   const { showPicture } = useGame();
   const {
@@ -19,20 +21,27 @@ export default function ChallengeDisplayer() {
     setCurrentQuestion,
   } = useQuestion();
   const { setShowLoading } = useLoadingDialog();
-  const { updatePlayerStats, player } = useRoom();
+  const { updatePlayerStats, player, room } = useRoom();
 
   const roundHashes = useMemo(
     () => questionList.map((question) => question.hash),
     [questionList],
   );
+  const questionDurationSeconds =
+    room?.questionDurationSeconds ?? DEFAULT_QUESTION_DURATION_SECONDS;
 
   const { data, isLoading, error } = useSWR<Question[]>(
     roundHashes.length > 0
-      ? { type: "round-questions", hashes: roundHashes }
+      ? {
+          type: "round-questions",
+          hashes: roundHashes,
+          questionDurationSeconds,
+        }
       : null,
-    async ({ hashes }) => {
+    async ({ hashes, questionDurationSeconds }) => {
       const questions = await getQuestions(
         hashes.map((hash: string) => ({ hash })),
+        questionDurationSeconds,
       );
       console.log(questions);
       if (!questions || questions.length === 0) {
@@ -75,10 +84,15 @@ export default function ChallengeDisplayer() {
       ...selectedQuestion,
       challenge: {
         ...selectedQuestion.challenge,
-        end_time: Date.now() + 20_000,
+        end_time: Date.now() + questionDurationSeconds * 1000,
       },
     });
-  }, [currentQuestionHash?.hash, selectedQuestion, setCurrentQuestion]);
+  }, [
+    currentQuestionHash?.hash,
+    room?.questionDurationSeconds,
+    selectedQuestion,
+    setCurrentQuestion,
+  ]);
 
   useEffect(() => {
     setShowLoading(

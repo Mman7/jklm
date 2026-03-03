@@ -25,6 +25,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useRoomInitializer from "@/src/hooks/useRoomInitializer";
 import useShowAnswer from "@/src/zustands/useShowAnswerStore";
+import useGame from "@/src/zustands/useGameStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import { PlayerStatus } from "@/src/types/enum/player_status";
@@ -40,6 +41,7 @@ export default function GamePage() {
   const { setCurrentQuestionHash, currentQuestionHash, questionList } =
     useQuestion();
   const { showAnswer } = useShowAnswer();
+  const { setGameReady } = useGame();
   const { players } = useRoomPlayers(channel);
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const [joinedQuestionHash, setJoinedQuestionHash] = useState<string | null>(
@@ -106,10 +108,20 @@ export default function GamePage() {
     roomId,
   });
 
-  if (!channel) return <div>Loading...</div>;
-
   // const isGameReady = players.length >= 2;
-  const isGameReady = true;
+  const isGameReady = players.length >= 1;
+
+  useEffect(() => {
+    setGameReady(isGameReady);
+  }, [isGameReady, setGameReady]);
+
+  useEffect(() => {
+    return () => {
+      setGameReady(false);
+    };
+  }, [setGameReady]);
+
+  if (!channel) return <div>Loading...</div>;
 
   const isBlockedForCurrentQuestion =
     hasJoinedGame &&

@@ -11,6 +11,9 @@ export interface CreateRoomRequest {
   playerId: string;
 }
 
+const DEFAULT_TARGET_SCORE = 100;
+const DEFAULT_QUESTION_DURATION_SECONDS = 20;
+
 export async function POST(request: Request) {
   const body = await request.json();
   const { playerId }: CreateRoomRequest = body;
@@ -35,6 +38,8 @@ export async function POST(request: Request) {
     scores: {},
     createdAt: new Date(),
     hostId: playerId,
+    targetScore: DEFAULT_TARGET_SCORE,
+    questionDurationSeconds: DEFAULT_QUESTION_DURATION_SECONDS,
   };
 
   // database create Room

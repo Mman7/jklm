@@ -12,6 +12,8 @@ dotenv.config({ path: ".env" });
 
 const ROUND_TTL_SECONDS = 60 * 10;
 const ROOM_TTL_SECONDS = 10800; // 3 hours
+const DEFAULT_TARGET_SCORE = 100;
+const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
 // Room "document" key (hash): stable room state fields.
 const getRoomMetaKey = (roomId: string) => `room:${roomId}:meta`;
@@ -62,6 +64,19 @@ const parseQuestionHashOnly = (
   }
 };
 
+const parsePositiveInt = (
+  value: unknown,
+  fallback: number,
+  min: number,
+  max: number,
+) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  const integerValue = Math.trunc(parsed);
+  if (integerValue < min || integerValue > max) return fallback;
+  return integerValue;
+};
+
 const toQuestionsHashPayload = (
   questionList?: QuestionHashOnly[],
 ): Record<string, string> => {
@@ -92,6 +107,17 @@ const toRoomHashPayload = (room: Room): Record<string, string> => ({
   id: room.id,
   hostId: room.hostId,
   createdAt: normalizeDate(room.createdAt).toISOString(),
+  targetScore: String(
+    parsePositiveInt(room.targetScore, DEFAULT_TARGET_SCORE, 1, 1000),
+  ),
+  questionDurationSeconds: String(
+    parsePositiveInt(
+      room.questionDurationSeconds,
+      DEFAULT_QUESTION_DURATION_SECONDS,
+      5,
+      180,
+    ),
+  ),
   currentQuestion: room.currentQuestion
     ? JSON.stringify(room.currentQuestion)
     : "",
@@ -107,6 +133,18 @@ const fromRoomHashPayload = (payload: Record<string, string>): Room | null => {
     id: payload.id,
     hostId: payload.hostId,
     createdAt: normalizeDate(payload.createdAt),
+    targetScore: parsePositiveInt(
+      payload.targetScore,
+      DEFAULT_TARGET_SCORE,
+      1,
+      1000,
+    ),
+    questionDurationSeconds: parsePositiveInt(
+      payload.questionDurationSeconds,
+      DEFAULT_QUESTION_DURATION_SECONDS,
+      5,
+      180,
+    ),
     currentQuestion: parseQuestionHashOnly(payload.currentQuestion),
   };
 };
@@ -221,8 +259,15 @@ export const addScore = async (
   // Ensure scores key has TTL (doesn't refresh room meta TTL, scores managed separately)
   await client.expire(getRoomScoresKey(roomId), ROOM_TTL_SECONDS);
 
-  // Check if player score reaches the winning threshold (100)
-  if (updatedScore >= 100) {
+  const roomTargetScore = parsePositiveInt(
+    await client.hGet(getRoomMetaKey(roomId), "targetScore"),
+    DEFAULT_TARGET_SCORE,
+    1,
+    1000,
+  );
+
+  // Check if player score reaches the room winning threshold.
+  if (updatedScore >= roomTargetScore) {
     // Notify the player via Ably
     noticeRoomPlayerWinner(roomId, playerId);
     // Clear all scores (win condition logic)
