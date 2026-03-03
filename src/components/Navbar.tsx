@@ -1,6 +1,8 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import useAuth from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
 import useNameDialog from "../zustands/useNameDialogStore";
@@ -22,16 +24,23 @@ export default function Navbar() {
   return (
     <div className="navbar border-base-content/10 bg-base-100/80 relative z-30 border-b">
       <div className="navbar-start">
-        <div className="dropdown">
-          <label
-            htmlFor="my-drawer-3"
-            className={`btn btn-ghost btn-circle drawer-button mx-4 lg:hidden ${shouldHideDrawerToggle ? "hidden" : ""}`}
-          >
-            <Menu />
-          </label>
-        </div>
+        <Link
+          href="/"
+          className="hover:bg-base-content/5 flex items-center gap-2 rounded-xl px-3 py-1.5"
+        >
+          <Image
+            src="/favicon.svg"
+            alt="JKLM logo"
+            width={24}
+            height={24}
+            priority
+          />
+          <span className="text-base-content text-sm font-semibold tracking-wide sm:text-base">
+            JKLM Trivia
+          </span>
+        </Link>
       </div>
-      <div className="navbar-center">{/* content center */}</div>
+      <div className="navbar-center"></div>
       <div className="navbar-end">
         <div className="dropdown dropdown-end">
           <button

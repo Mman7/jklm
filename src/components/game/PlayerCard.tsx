@@ -36,12 +36,12 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         </div>
       </div>
 
-      <section className="min-w-0 flex-1">
+      <section className="min-w-0 flex-1 p-2">
         <h2 className="truncate text-lg leading-tight font-semibold">
           {player.name}
         </h2>
         <pre
-          className={`truncate text-xs ${isAnswerCorrect ? "text-success font-semibold" : "text-base-content/60"}`}
+          className={`text-md truncate ${isAnswerCorrect ? "text-success font-semibold" : "text-base-content/60"}`}
         >
           {isAnswerCorrect ? "CORRECT" : playerChat || " "}
         </pre>

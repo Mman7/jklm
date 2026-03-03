@@ -59,6 +59,15 @@ export default function GamePage() {
     joinedQuestionHash,
     showAnswer,
   });
+
+  // const handleDismissCorrectAnimation = useCallback(() => {
+  //   setShowCorrectAnimation(false);
+  // }, []);
+
+  useEffect(() => {
+    setShowCorrectAnimation(false);
+  }, [currentQuestionHash?.hash]);
+
   Timer();
 
   // Show correct animation when player answers correctly
@@ -168,9 +177,7 @@ export default function GamePage() {
 
   return (
     <div className="bg-base-200/50 ml-6 flex h-full w-full gap-3">
-      {showCorrectAnimation && (
-        <Correct onDismiss={() => setShowCorrectAnimation(false)} />
-      )}
+      {showCorrectAnimation && <Correct />}
       {showAnswer ? (
         <ShowAnswer />
       ) : (

@@ -86,8 +86,8 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col gap-6 p-4 md:p-4">
-      <section className="relative flex shrink-0 flex-col gap-8 overflow-hidden rounded-4xl border border-gray-200 bg-white lg:flex-row lg:gap-12">
+    <div className="relative flex h-full w-full flex-col gap-6 p-4 shadow-lg md:p-4">
+      <section className="relative flex shrink-0 flex-col gap-8 overflow-hidden rounded-4xl border border-gray-200 bg-white shadow-md lg:flex-row lg:gap-12">
         {/* Left Content */}
         <div className="flex flex-1 flex-col justify-center gap-6 p-8">
           <div>
