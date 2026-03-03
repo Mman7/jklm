@@ -44,7 +44,6 @@ export default function ChallengeDisplayer() {
         hashes.map((hash: string) => ({ hash })),
         questionDurationSeconds,
       );
-      console.log(questions);
       if (!questions || questions.length === 0) {
         throw new Error("Questions not found");
       }

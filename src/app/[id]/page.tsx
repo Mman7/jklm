@@ -60,10 +60,6 @@ export default function GamePage() {
     showAnswer,
   });
 
-  // const handleDismissCorrectAnimation = useCallback(() => {
-  //   setShowCorrectAnimation(false);
-  // }, []);
-
   useEffect(() => {
     setShowCorrectAnimation(false);
   }, [currentQuestionHash?.hash]);
@@ -119,8 +115,7 @@ export default function GamePage() {
     roomId,
   });
 
-  // const isGameReady = players.length >= 2;
-  const isGameReady = players.length >= 1;
+  const isGameReady = players.length >= 2;
 
   useEffect(() => {
     setGameReady(isGameReady);
