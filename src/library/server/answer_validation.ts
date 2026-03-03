@@ -6,6 +6,20 @@ import {
 } from "@/src/types/answer_validation";
 import { AnswerComparator, findAnswer } from "@/src/utils/question_utils";
 
+export async function processCorrectAnswer(
+  request: AnswerValidationRequest,
+): Promise<AnswerValidationResponse> {
+  const { playerId, roomId, questionHash } = request;
+
+  const score = await addScoreToDatabase(playerId, roomId, questionHash);
+  await alertPlayerCorrect(playerId, roomId);
+
+  return {
+    correct: true,
+    score,
+  };
+}
+
 export async function validateAnswerSubmission(
   request: AnswerValidationRequest,
 ): Promise<AnswerValidationResponse> {

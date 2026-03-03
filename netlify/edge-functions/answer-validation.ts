@@ -1,9 +1,56 @@
-import { validateAnswerSubmission } from "../../src/library/server/answer_validation";
-import type { AnswerValidationRequest } from "../../src/types/answer_validation";
+import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
 
 interface EdgeContext {
   requestId?: string;
 }
+
+interface AnswerValidationRequest {
+  playerId: string;
+  roomId: string;
+  questionHash: string;
+  answerSubmit: string;
+}
+
+type AnswerMap = Record<string, string>;
+
+const normalize = (value: string): string =>
+  value.trim().toLowerCase().replace(/\s+/g, " ");
+
+const containsWholeWord = (text: string, word: string): boolean => {
+  const index = text.indexOf(word);
+  if (index === -1) return false;
+
+  const leftBoundary = index === 0 || text[index - 1] === " ";
+  const rightIndex = index + word.length;
+  const rightBoundary = rightIndex === text.length || text[rightIndex] === " ";
+
+  return leftBoundary && rightBoundary;
+};
+
+const answerMap: AnswerMap = Object.fromEntries(
+  Object.entries(rawAnswerMap as AnswerMap).map(([hash, answer]) => [
+    hash,
+    normalize(answer),
+  ]),
+);
+
+const compareAnswer = (
+  answerInStore: string,
+  submitAnswer: string,
+): boolean => {
+  if (!answerInStore || !submitAnswer || !submitAnswer.trim()) {
+    return false;
+  }
+
+  const normalizedStore = answerInStore;
+  const normalizedSubmit = normalize(submitAnswer);
+
+  if (normalizedStore === normalizedSubmit) {
+    return true;
+  }
+
+  return containsWholeWord(normalizedSubmit, normalizedStore);
+};
 
 export default async function answerValidation(
   request: Request,
@@ -31,10 +78,30 @@ export default async function answerValidation(
       });
     }
 
-    const response = await validateAnswerSubmission(payload);
+    const expectedAnswer = answerMap[questionHash] || "";
+    const isCorrect = compareAnswer(expectedAnswer, answerSubmit);
 
-    return new Response(JSON.stringify(response), {
-      status: 200,
+    if (!isCorrect) {
+      return new Response(JSON.stringify({ correct: false }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    const internalApiUrl = new URL("/api/answer-validation", request.url);
+
+    const functionResponse = await fetch(internalApiUrl.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    return new Response(functionResponse.body, {
+      status: functionResponse.status,
       headers: {
         "Content-Type": "application/json",
       },
