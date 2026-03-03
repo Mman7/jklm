@@ -1,21 +1,17 @@
 "use client";
 
-import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import useAuth from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
 import useNameDialog from "../zustands/useNameDialogStore";
-import useGame from "../zustands/useGameStore";
 
 export default function Navbar() {
   const { name } = useAuth();
   const { setShowNameDialog } = useNameDialog();
-  const { gameReady } = useGame();
   const initials = name.trim().slice(0, 2).toUpperCase();
 
   const path = usePathname();
-  const shouldHideDrawerToggle = path === "/" || gameReady;
 
   const handleChangedName = () => {
     setShowNameDialog(true);

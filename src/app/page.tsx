@@ -14,15 +14,7 @@ import Dialog from "../components/dialogs/dialog";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import useRoom from "../zustands/useRoomStore";
 import useAuth from "../zustands/useAuthStore";
-import {
-  CircleHelp,
-  PenLine,
-  Rocket,
-  Search,
-  Users,
-  Trophy,
-  CirclePlus,
-} from "lucide-react";
+import { CircleHelp, PenLine, Users, Trophy, CirclePlus } from "lucide-react";
 
 export default function Home() {
   const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =

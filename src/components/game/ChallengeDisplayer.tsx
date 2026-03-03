@@ -9,7 +9,6 @@ import { getQuestions } from "@/src/library/client/client";
 import { Question } from "@/src/types/question";
 import SvgBase64Image from "./SvgBase64Image";
 import Base64Image from "./Base64Image";
-import { ArrowRight } from "lucide-react";
 
 const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
