@@ -57,6 +57,34 @@ export default function PlayerInput() {
   const [inputValue, setInputValue] = useState<string>("");
   const isAnswerLocked = player?.playerStatus === PlayerStatus.answer_correct;
 
+  const submitAnswer = async () => {
+    if (isAnswerLocked) return;
+
+    const submittedAnswer = inputValue.trim();
+    if (!submittedAnswer) return;
+
+    const body: AnswerValidationRequest = {
+      playerId: playerId,
+      roomId: room?.id || "",
+      questionHash: currentQuestionHash?.hash || "",
+      answerSubmit: submittedAnswer,
+    };
+    setInputValue("");
+
+    const response = await validateAnswer(body);
+
+    if (!response.correct) {
+      sendMessage(submittedAnswer, playerId);
+    }
+
+    if (response.correct && response.score !== undefined && player) {
+      const updatedPlayer: Player = { ...player };
+      updatedPlayer.score = response.score;
+      updatedPlayer.playerStatus = PlayerStatus.answer_correct;
+      updatePlayerStats(updatedPlayer);
+    }
+  };
+
   /**
    * Event handler triggered when a key is pressed in the input field.
    * Validates the answer upon hitting "Enter" and updates local player stats if correct.
@@ -65,35 +93,7 @@ export default function PlayerInput() {
     if (isAnswerLocked) return;
 
     if (event.key === "Enter") {
-      const submittedAnswer = inputValue.trim();
-      if (!submittedAnswer) return;
-
-      // Construct the request body for the API validation endpoint
-      const body: AnswerValidationRequest = {
-        playerId: playerId,
-        roomId: room?.id || "", // You need to provide the roomId here
-        questionHash: currentQuestionHash?.hash || "",
-        answerSubmit: submittedAnswer,
-      };
-      setInputValue("");
-
-      const response = await validateAnswer(body);
-
-      if (!response.correct) {
-        // Wrong answers are visible in chat.
-        sendMessage(submittedAnswer, playerId);
-      }
-
-      // If the server confirms the answer is correct and returns a score,
-      // update the local player object with the new score.
-      if (response.correct && response.score !== undefined && player) {
-        const updatedPlayer: Player = { ...player };
-        updatedPlayer.score = response.score;
-        updatedPlayer.playerStatus = PlayerStatus.answer_correct;
-        updatePlayerStats(updatedPlayer);
-      }
-
-      // Clear the input field after submission
+      await submitAnswer();
     }
   };
 
@@ -106,21 +106,35 @@ export default function PlayerInput() {
   };
 
   return (
-    // Footer container with a negative margin-top to overlap content, flex layout for centering,
-    // fixed height, and a glass-styled background.
-    <footer className="border-base-content/10 bg-base-100/80 -mt-6 flex h-14 w-full items-center border-t p-4 shadow-lg backdrop-blur-xl">
+    <footer className="bg-base-100 my-3 rounded-3xl border border-gray-200 px-4 pt-3 pb-2 shadow-sm">
       {!isAnswerLocked ? (
-        <input
-          value={inputValue}
-          // Binds the onChange event to the onChanged function
-          onChange={(e) => onChanged(e)}
-          // Binds the onKeyDown event to the handleKeyDown function
-          onKeyDown={handleKeyDown}
-          placeholder="Type your answer and press Enter..."
-          className="border-base-content/20 bg-base-100/60 focus:border-primary focus:ring-primary/20 h-full w-full rounded-2xl border p-6 px-4 backdrop-blur-xl transition-all focus:ring-2 focus:outline-none"
-        ></input>
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-2">
+          <div className="bg-primary/10 flex h-12 w-full items-center gap-2 rounded-full px-4">
+            <input
+              value={inputValue}
+              onChange={(e) => onChanged(e)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your answer here..."
+              className="placeholder:text-base-content/50 text-base-content h-full w-full bg-transparent text-center text-base font-medium outline-none"
+            ></input>
+            <button
+              type="button"
+              className="btn btn-primary btn-circle btn-sm"
+              onClick={submitAnswer}
+              disabled={!inputValue.trim()}
+            >
+              ➤
+            </button>
+          </div>
+          <p className="text-base-content/50 text-xs font-medium">
+            Press <span className="badge badge-xs bg-primary/5 p-2">ENTER</span>{" "}
+            to submit
+          </p>
+        </div>
       ) : (
-        <h1 className="m-auto">You are correct!</h1>
+        <h1 className="text-success text-center font-semibold">
+          You are correct!
+        </h1>
       )}
     </footer>
   );

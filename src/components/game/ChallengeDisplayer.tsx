@@ -9,6 +9,7 @@ import { getQuestions } from "@/src/library/client/client";
 import { Question } from "@/src/types/question";
 import SvgBase64Image from "./SvgBase64Image";
 import Base64Image from "./Base64Image";
+import { ArrowRight } from "lucide-react";
 
 const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
@@ -132,39 +133,43 @@ export default function ChallengeDisplayer() {
   const isSvgImage = image?.type.includes("svg") ?? false;
 
   return (
-    <div className="border-base-content/10 bg-base-100/40 flex h-full flex-col items-center justify-center gap-4 border p-6 backdrop-blur-xl">
-      <h1 className="mb-2 text-2xl font-bold">
-        {activeQuestion.challenge.prompt}
-      </h1>
+    <div className="bg-base-100/70 border-base-300 flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm">
+      <div className="from-primary/20 via-primary to-primary/20 h-1 w-full bg-linear-to-r" />
 
-      {hasText && (
-        <section className="bg-gray-200 p-6">
-          <q>{activeQuestion.challenge.text}</q>
-        </section>
-      )}
+      <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-5 px-5 py-6 text-center sm:px-8">
+        {hasImage && showPicture && (
+          <figure className="flex w-full justify-center overflow-hidden rounded-2xl">
+            {isSvgImage ? (
+              <SvgBase64Image
+                base64={image!.base64}
+                alt={activeQuestion.details}
+              />
+            ) : (
+              <Base64Image
+                type={image!.type}
+                base64={image!.base64}
+                alt={activeQuestion.details}
+              />
+            )}
+          </figure>
+        )}
 
-      {hasImage && showPicture && (
-        <figure className="max-w-full overflow-hidden">
-          {isSvgImage ? (
-            <SvgBase64Image
-              base64={image!.base64}
-              alt={activeQuestion.details}
-            />
-          ) : (
-            <Base64Image
-              type={image!.type}
-              base64={image!.base64}
-              alt={activeQuestion.details}
-            />
-          )}
-        </figure>
-      )}
+        {hasImage && !showPicture && (
+          <div className="bg-base-200 text-base-content/60 w-full rounded-2xl px-4 py-6 text-sm">
+            Image will appear when all players are ready.
+          </div>
+        )}
 
-      {hasImage && !showPicture && (
-        <p className="text-sm text-gray-600">
-          Image will appear when all players are ready.
-        </p>
-      )}
+        <h1 className="max-w-xl text-2xl leading-tight font-bold sm:text-3xl">
+          {activeQuestion.challenge.prompt}
+        </h1>
+
+        {hasText && (
+          <section className="bg-base-200 text-base-content/80 w-full rounded-2xl px-5 py-4 text-base">
+            <q>{activeQuestion.challenge.text}</q>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

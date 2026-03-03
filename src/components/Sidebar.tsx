@@ -22,8 +22,9 @@ export default function Sidebar() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-  const shouldHideSidebar = path === "/" || gameReady;
+  const shouldHideSidebar = path === "/";
   const isHost = !!room && room.hostId === playerId;
+  const isSettingsLocked = gameReady;
 
   useEffect(() => {
     if (!room) return;
@@ -34,7 +35,7 @@ export default function Sidebar() {
   }, [room]);
 
   const handleSave = async () => {
-    if (!room || !playerId || !isHost) return;
+    if (!room || !playerId || !isHost || isSettingsLocked) return;
 
     const normalizedTargetScore = Math.min(1000, Math.max(1, targetScore));
     const normalizedQuestionDuration = Math.min(
@@ -76,7 +77,7 @@ export default function Sidebar() {
       ></label>
       <ul className="menu border-base-content/10 bg-base-100/90 min-h-full w-80 border-r p-4 backdrop-blur-xl">
         <li className="menu-title pointer-events-none">
-          <span>Game Settings</span>
+          <span>Game Rules</span>
         </li>
         <li className="rounded-lg p-2">
           <label className="label pointer-events-none p-0 pb-1">
@@ -88,7 +89,7 @@ export default function Sidebar() {
             max={1000}
             value={targetScore}
             onChange={(event) => setTargetScore(Number(event.target.value))}
-            disabled={!isHost || isSaving}
+            disabled={!isHost || isSaving || isSettingsLocked}
             className="input input-bordered input-sm w-full"
           />
         </li>
@@ -104,20 +105,27 @@ export default function Sidebar() {
             onChange={(event) =>
               setQuestionDurationSeconds(Number(event.target.value))
             }
-            disabled={!isHost || isSaving}
+            disabled={!isHost || isSaving || isSettingsLocked}
             className="input input-bordered input-sm w-full"
           />
         </li>
-        <li className="mt-2 p-2">
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={handleSave}
-            disabled={!isHost || isSaving}
-          >
-            {isSaving ? "Saving..." : "Save settings"}
-          </button>
-        </li>
+        {!isSettingsLocked && (
+          <li className="mt-2 p-2">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleSave}
+              disabled={!isHost || isSaving}
+            >
+              {isSaving ? "Saving..." : "Save settings"}
+            </button>
+          </li>
+        )}
+        {isSettingsLocked && (
+          <li className="px-2 pt-1 text-xs opacity-70">
+            Settings are locked after game start.
+          </li>
+        )}
         {!isHost && (
           <li className="px-2 pt-1 text-xs opacity-70">
             Only room host can change settings.

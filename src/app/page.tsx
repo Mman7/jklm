@@ -21,6 +21,7 @@ import {
   Search,
   Users,
   Trophy,
+  CirclePlus,
 } from "lucide-react";
 
 export default function Home() {
@@ -85,23 +86,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col gap-6 p-6 md:p-12">
-      {/* Decorative dots pattern - subtle overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, currentColor 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      ></div>
-
-      <section className="relative flex shrink-0 flex-col gap-8 lg:flex-row lg:gap-12">
+    <div className="relative flex h-full w-full flex-col gap-6 p-4 md:p-4">
+      <section className="relative flex shrink-0 flex-col gap-8 overflow-hidden rounded-4xl border border-gray-200 bg-white lg:flex-row lg:gap-12">
         {/* Left Content */}
-        <div className="flex flex-1 flex-col justify-center gap-6">
+        <div className="flex flex-1 flex-col justify-center gap-6 p-8">
           <div>
             <h1 className="mb-4 text-5xl leading-tight font-bold md:text-6xl">
-              Welcome to <span className="text-primary">JKLM</span>
+              Welcome to <span className="text-primary underline">JKLM</span>
             </h1>
             <p className="text-base-content/80 mb-4 text-lg leading-relaxed">
               Play real-time trivia with friends, race for points, and win
@@ -114,19 +105,19 @@ export default function Home() {
 
           <section className="flex flex-col gap-3 pt-4">
             <button
-              className="btn btn-primary btn-lg rounded-xl font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="btn btn-primary btn-lg shadow-primary/50 rounded-full font-semibold shadow-md transition-all hover:scale-105 hover:shadow-lg"
               // Start host-room flow.
               onClick={() => handleHostRoom()}
             >
-              <Rocket size={20} />
+              <CirclePlus size={20} />
               Host Room
             </button>
             <button
-              className="btn btn-secondary btn-lg rounded-xl font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="btn bg-secondary btn-lg rounded-full border border-gray-300 font-semibold shadow-xs transition-all hover:scale-105 hover:shadow-xl"
               // Open dialog to enter room code.
               onClick={() => setOpenJoinDialog(true)}
             >
-              <Search size={20} />
+              <Users className="text-primary mt-0.5 shrink-0" size={16} />
               Join Room
             </button>
             <JoinDialog
@@ -141,39 +132,50 @@ export default function Home() {
         </div>
 
         {/* Right Content */}
-        <div className="flex flex-1 flex-col gap-8">
-          <div className="border-base-content/10 from-primary/10 to-secondary/10 relative overflow-hidden rounded-2xl border bg-linear-to-br p-8 backdrop-blur-sm">
+        <div className="flex flex-1">
+          <div className="bg-primary text-primary-content p-8">
             {/* Decorative accent */}
-            <div className="bg-primary/10 pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full blur-2xl"></div>
 
             <h2 className="relative mb-4 flex items-center gap-3 text-3xl font-bold">
-              <CircleHelp className="text-primary" size={28} />
+              <CircleHelp className="text-primary-content" size={28} />
               About JKLM
             </h2>
-            <p className="text-base-content/80 relative mb-6 leading-relaxed">
+            <p className="text-primary-content/80 relative mb-6 leading-relaxed">
               JKLM is a multiplayer guessing game where each round reveals a new
               challenge. Every correct answer increases your score, and the
               first player to reach the target wins the round.
             </p>
 
             <h3 className="mb-4 text-xl font-semibold">How it works</h3>
-            <ul className="text-base-content/80 space-y-3">
+            <ul className="text-primary-content/80 space-y-3">
               <li className="flex items-start gap-3">
-                <Rocket className="text-primary mt-0.5 shrink-0" size={16} />
+                <CirclePlus
+                  className="text-primary-content mt-1 shrink-0"
+                  size={16}
+                />
                 <span>Host creates a room and shares the room code.</span>
               </li>
               <li className="flex items-start gap-3">
-                <Users className="text-primary mt-0.5 shrink-0" size={16} />
+                <Users
+                  className="text-primary-content mt-0.5 shrink-0"
+                  size={16}
+                />
                 <span>Players join and wait for the question to start.</span>
               </li>
               <li className="flex items-start gap-3">
-                <PenLine className="text-primary mt-0.5 shrink-0" size={16} />
+                <PenLine
+                  className="text-primary-content mt-0.5 shrink-0"
+                  size={16}
+                />
                 <span>
                   Submit answers in the input field as fast as possible.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Trophy className="text-primary mt-0.5 shrink-0" size={16} />
+                <Trophy
+                  className="text-primary-content mt-0.5 shrink-0"
+                  size={16}
+                />
                 <span>Scores update live for everyone in the room.</span>
               </li>
             </ul>

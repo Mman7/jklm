@@ -10,6 +10,7 @@ export default function Navbar() {
   const { name } = useAuth();
   const { setShowNameDialog } = useNameDialog();
   const { gameReady } = useGame();
+  const initials = name.trim().slice(0, 2).toUpperCase();
 
   const path = usePathname();
   const shouldHideDrawerToggle = path === "/" || gameReady;
@@ -19,7 +20,7 @@ export default function Navbar() {
   };
 
   return (
-    <div className="navbar border-base-content/10 bg-base-100/80 relative z-30 border-b shadow-lg backdrop-blur-xl">
+    <div className="navbar border-base-content/10 bg-base-100/80 relative z-30 border-b">
       <div className="navbar-start">
         <div className="dropdown">
           <label
@@ -32,18 +33,14 @@ export default function Navbar() {
       </div>
       <div className="navbar-center">{/* content center */}</div>
       <div className="navbar-end">
-        <div className="dropdown dropdown-end rounded-2xl bg-gray-200 p-1.5">
+        <div className="dropdown dropdown-end">
           <button
             type="button"
             tabIndex={0}
             className="btn btn-ghost hover:bg-base-content/5 w-full justify-end"
           >
-            <div className="h-10 w-10 overflow-hidden rounded-full ring-2">
-              <img
-                src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                alt="avatar"
-                className="h-full w-full object-cover"
-              />
+            <div className="bg-primary/15 text-primary flex size-11 items-center justify-center rounded-full text-xs font-bold">
+              <h1 className="text-md">{initials}</h1>
             </div>
             <h1 className="mr-3">{name}</h1>
           </button>
