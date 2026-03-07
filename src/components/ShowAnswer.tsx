@@ -72,11 +72,10 @@ export default function ShowAnswer() {
   }, [showAnswer]);
 
   return (
-    // Conditionally apply classes based on state; flex-3 seems to be a utility class not shown here
     <div
-      className={`${showAnswer && currentQuestionHash?.hash ? "block flex-3" : "hidden"}`}
+      className={`${showAnswer && currentQuestionHash?.hash ? "block w-full flex-3 p-3" : "hidden"}`}
     >
-      <section className="border-base-content/20 from-success/20 to-success/5 m-3 flex size-full h-17/18 flex-col items-center justify-center gap-4 rounded-3xl border bg-linear-to-br p-6 shadow-xl backdrop-blur-xl">
+      <section className="border-base-content/20 from-success/20 to-success/5 flex h-full w-full flex-col items-center justify-center gap-4 rounded-3xl border bg-linear-to-br p-6 shadow-xl backdrop-blur-xl">
         <div className="bg-success/20 rounded-full p-4">
           <svg
             className="text-success h-12 w-12"
