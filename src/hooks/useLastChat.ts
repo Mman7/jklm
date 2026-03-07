@@ -12,7 +12,6 @@ export function useLastChat() {
 
     const unsubscribe = subscribeToMessages((msg) => {
       // update last chat
-      console.log(msg);
       setLastChat({ message: msg.text, senderId: msg.playerId });
     });
 
