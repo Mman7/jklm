@@ -29,7 +29,7 @@ import useGame from "@/src/zustands/useGameStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import { PlayerStatus } from "@/src/types/enum/player_status";
-import { Trophy } from "lucide-react";
+import { Trophy, Users, X } from "lucide-react";
 
 export default function GamePage() {
   const { playerId, name } = useAuth();
@@ -49,6 +49,7 @@ export default function GamePage() {
     null,
   );
   const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
+  const [isMobilePlayerListOpen, setIsMobilePlayerListOpen] = useState(false);
   const [lastCorrectQuestionHash, setLastCorrectQuestionHash] = useState<
     string | null
   >(null);
@@ -114,8 +115,8 @@ export default function GamePage() {
     questionList,
     roomId,
   });
-
-  const isGameReady = players.length >= 2;
+  // TODO
+  const isGameReady = players.length >= 1;
 
   useEffect(() => {
     setGameReady(isGameReady);
@@ -126,6 +127,17 @@ export default function GamePage() {
       setGameReady(false);
     };
   }, [setGameReady]);
+
+  useEffect(() => {
+    if (!isMobilePlayerListOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobilePlayerListOpen]);
 
   if (!channel) return <div>Loading...</div>;
 
@@ -171,7 +183,7 @@ export default function GamePage() {
   };
 
   return (
-    <div className="bg-base-200/50 ml-6 flex h-full w-full gap-3">
+    <div className="bg-base-200/50 flex h-full w-full max-w-full gap-3 lg:ml-6">
       {showCorrectAnimation && <Correct />}
       {showAnswer ? (
         <ShowAnswer />
@@ -190,7 +202,7 @@ export default function GamePage() {
               </div>
             </section>
 
-            <section className="flex min-w-45 flex-1 flex-col items-center gap-1">
+            <section className="flex flex-1 flex-col items-center gap-1">
               <progress
                 className="progress progress-primary h-1.5 w-full max-w-55"
                 value={timerProgressPercent}
@@ -199,9 +211,16 @@ export default function GamePage() {
             </section>
 
             <section className="flex min-w-30 items-center justify-end gap-2">
-              {/* <Clock3 size={14} className="text-primary" /> */}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm lg:hidden"
+                onClick={() => setIsMobilePlayerListOpen(true)}
+                aria-label="Open player list"
+              >
+                <Users size={14} />
+                <span>Players ({players.length})</span>
+              </button>
               <div className="text-right leading-tight">
-                {/* <TimerBar /> */}
                 <GameJoinStatus
                   hasJoinedGame={hasJoinedGame}
                   isGameReady={isGameReady}
@@ -244,7 +263,37 @@ export default function GamePage() {
         </section>
       )}
 
-      <PlayerListChat />
+      <PlayerListChat className="m-2 hidden lg:flex" />
+
+      {isMobilePlayerListOpen && (
+        <div
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            className="bg-base-content/40 absolute inset-0"
+            onClick={() => setIsMobilePlayerListOpen(false)}
+            aria-label="Close player list"
+          />
+          <div className="absolute top-0 right-0 h-full w-[min(22rem,92vw)] p-2">
+            <PlayerListChat
+              className="h-full w-full"
+              headerAction={
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={() => setIsMobilePlayerListOpen(false)}
+                  aria-label="Close player list"
+                >
+                  <X size={14} />
+                </button>
+              }
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
