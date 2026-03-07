@@ -22,9 +22,9 @@ export default function RoomList() {
 
   // Main render section for the room list
   return (
-    <section className="flex h-full min-h-0 w-full flex-col p-4">
+    <section className="flex h-full min-h-0 w-full flex-col ">
       {/* Header section with title and refresh button */}
-      <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
+      <div className="mb-4 flex shrink-0 items-center justify-between gap-3 ">
         <h2 className="text-2xl font-semibold">Join Public Room</h2>
         <button
           className="btn btn-sm btn-outline rounded-full hover:scale-105"
@@ -35,9 +35,9 @@ export default function RoomList() {
       </div>
 
       {/* Scrollable container for room cards */}
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {/* Grid container for displaying room cards */}
-        <div className="flex flex-wrap gap-4 p-4">
+        <div className="flex flex-wrap gap-4">
           {/* Conditional rendering: only show room cards if roomList has items */}
           {roomList.length > 0 &&
             roomList.map((room: Room) => (
