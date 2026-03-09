@@ -81,6 +81,7 @@ export default async function answerValidation(
     const expectedAnswer = answerMap[questionHash] || "";
     const isCorrect = compareAnswer(expectedAnswer, answerSubmit);
 
+    // If the answer is incorrect, we can return early without invoking the internal API.
     if (!isCorrect) {
       return new Response(JSON.stringify({ correct: false }), {
         status: 200,
@@ -90,12 +91,14 @@ export default async function answerValidation(
       });
     }
 
+    // For correct answers, we call the internal API to handle scoring and notifications.
     const internalApiUrl = new URL("/api/answer-validation", request.url);
 
     const functionResponse = await fetch(internalApiUrl.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-answer-prevalidated": "true",
       },
       body: JSON.stringify(payload),
     });
