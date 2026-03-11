@@ -1,6 +1,8 @@
 import { readFileSync } from "fs";
 import path from "path";
 import type { Question, QuestionHashOnly } from "../types/question";
+import _ from "lodash";
+import ky from "ky";
 
 // Static data files generated during prebuild.
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
@@ -28,18 +30,11 @@ function loadQuestionPathMap(): Record<string, string> {
 
 export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
   // Randomly pick unique hashes from the index.
-  const hashes = Object.keys(questionPathMap);
+  const hashes: string[] = Object.keys(questionPathMap);
   if (hashes.length === 0 || count <= 0) return [];
 
-  const shuffled = [...hashes];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  return shuffled.slice(0, Math.min(count, shuffled.length)).map((hash) => ({
-    hash,
-  }));
+  const shuffled: string[] = _.sampleSize(hashes, count);
+  return shuffled.map((hash) => ({ hash }));
 }
 
 function generateCountTime(questionDurationSeconds: number = 20) {
@@ -89,8 +84,9 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   try {
     // Fetch from public data endpoint to avoid bundling files into serverless functions
     const baseUrl = getBaseUrl();
-    const response = await fetch(`${baseUrl}/data/${relativePath}`, {
+    const response = await ky.get(`${baseUrl}/data/${relativePath}`, {
       cache: "no-store",
+      throwHttpErrors: false,
     });
 
     if (!response.ok) {
@@ -128,72 +124,5 @@ export async function findAnswer(hash: string): Promise<string> {
   // Constant-time lookup from precomputed hash -> answer map.
   return parseFile[hash];
 }
-
-export async function AnswerComparator(
-  answerInStore: string,
-  submitAnswer: string,
-) {
-  if (!submitAnswer || !submitAnswer.trim()) {
-    // Prevent empty or whitespace-only answers.
-    return false;
-  }
-
-  // Case-insensitive + trimmed comparison.
-  const normalizedStore = answerInStore.trim().toLowerCase();
-  const normalizedSubmit = submitAnswer.trim().toLowerCase();
-
-  // Exact full-string match wins.
-  if (normalizedStore === normalizedSubmit) {
-    return true;
-  }
-
-  // Split answer into words and remove punctuation from each word
-  const answerParts = normalizedStore.split(" ");
-  const cleanedAnswerParts = answerParts
-    .map((word) => {
-      let cleaned = "";
-      for (let i = 0; i < word.length; i++) {
-        const char = word[i];
-        const code = char.charCodeAt(0);
-        // Keep only alphanumeric characters (a-z, 0-9)
-        if ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) {
-          cleaned += char;
-        }
-      }
-      return cleaned;
-    })
-    .filter((word) => word.length > 0); // Remove empty words
-
-  // Check if all cleaned answer words appear in order in submitted text
-  const submitParts = normalizedSubmit.split(" ");
-  let answerIndex = 0;
-
-  for (const submitWord of submitParts) {
-    if (answerIndex >= cleanedAnswerParts.length) {
-      break; // All answer words found
-    }
-
-    // Clean the submit word the same way
-    let cleanedSubmitWord = "";
-    for (let i = 0; i < submitWord.length; i++) {
-      const char = submitWord[i];
-      const code = char.charCodeAt(0);
-      if ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) {
-        cleanedSubmitWord += char;
-      }
-    }
-
-    // If this cleaned word matches the current expected answer word, move to next
-    if (cleanedSubmitWord === cleanedAnswerParts[answerIndex]) {
-      answerIndex++;
-    }
-  }
-
-  // If we found all answer words in order, return true
-  if (answerIndex === cleanedAnswerParts.length) {
-    return true;
-  }
-
-  // Fallback: any token in submitted text can match the expected answer.
-  return submitParts.includes(normalizedStore);
-}
+// Use shared comparator implementation
+export { AnswerComparator } from "./answer_comparator";

@@ -4,6 +4,7 @@ import { ServerEvent } from "@/src/types/enum/server_events";
 import { Question, QuestionHashOnly } from "@/src/types/question";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
+import _ from "lodash";
 import ky from "ky";
 
 export const hostRoom = async ({
@@ -72,14 +73,13 @@ export const getQuestions = (
   const BATCH_SIZE = 5;
 
   return (async () => {
+    // Extract hashes from question list.
     const hashes = questions.map((question) => question.hash);
+
     if (hashes.length === 0) return [];
+    const hashChunks = _.chunk(hashes, BATCH_SIZE);
 
-    const hashChunks: string[][] = [];
-    for (let index = 0; index < hashes.length; index += BATCH_SIZE) {
-      hashChunks.push(hashes.slice(index, index + BATCH_SIZE));
-    }
-
+    // Fetch question details in batches and merge results.
     const chunkResults = await Promise.all(
       hashChunks.map((chunkHashes) =>
         ky
@@ -93,15 +93,9 @@ export const getQuestions = (
       ),
     );
 
-    const questionByHash = new Map(
-      chunkResults
-        .flat()
-        .map((question) => [question.challenge.hash, question]),
-    );
-
-    return hashes
-      .map((hash) => questionByHash.get(hash))
-      .filter((question): question is Question => question !== undefined);
+    const merged = chunkResults.flat();
+    // Filter out any failed question loads (e.g. invalid hash) and return.
+    return merged.filter((question): question is Question => question !== null);
   })();
 };
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { sendMessage } from "../library/client/ably_client";
+import ky from "ky";
 import useAuth from "../zustands/useAuthStore";
 import useQuestion from "../zustands/useQuestionStore";
 import {
@@ -22,18 +23,17 @@ async function validateAnswer(
     typeof window !== "undefined" &&
     ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
+  // Prefer the route that matches the current environment, but keep a fallback
+  // so local dev and deployed edge/runtime setups both continue to work.
   const endpoints = isLocalhost
     ? ["/api/answer-validation", "/edge/answer-validation"]
     : ["/edge/answer-validation", "/api/answer-validation"];
 
   for (const endpoint of endpoints) {
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+      const response = await ky.post(endpoint, {
+        json: body,
+        throwHttpErrors: false,
       });
 
       if (response.ok) {
@@ -70,11 +70,16 @@ export default function PlayerInput() {
       questionHash: currentQuestionHash?.hash || "",
       answerSubmit: submittedAnswer,
     };
+
+    // Clear the field immediately so the UI stays responsive while validation
+    // happens in the background.
     setInputValue("");
 
     const response = await validateAnswer(body);
 
     if (!response.correct) {
+      // Incorrect guesses are still published so the rest of the room can react
+      // to them through the existing realtime flow.
       sendMessage(submittedAnswer, playerId);
     }
 
@@ -83,6 +88,9 @@ export default function PlayerInput() {
       updatedPlayer.score = response.score;
       updatedPlayer.playerStatus = PlayerStatus.answer_correct;
       playSound(SoundOptions.Correct);
+
+      // Reflect the successful answer locally right away instead of waiting for
+      // the next sync event from the room state.
       updatePlayerStats(updatedPlayer);
     }
   };

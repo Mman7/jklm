@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import ky from "ky";
 import { useRouter } from "next/navigation";
 import { leaveRoom } from "@/src/library/client/ably_client";
 
@@ -18,9 +19,7 @@ export default function ResultsAutoRedirect({
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       void leaveRoom();
-      void fetch(`/api/room/${roomId}`, {
-        method: "DELETE",
-      });
+      void ky.delete(`/api/room/${roomId}`, { throwHttpErrors: false });
       router.replace("/");
     }, delayMs);
 
