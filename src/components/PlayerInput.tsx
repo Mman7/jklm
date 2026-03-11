@@ -9,6 +9,7 @@ import {
 import useRoom from "../zustands/useRoomStore";
 import { Player } from "../types/player";
 import { PlayerStatus } from "../types/enum/player_status";
+import { playSound, SoundOptions } from "../utils/play_sounds";
 
 /**
  * Helper function to validate the player's answer with the server.
@@ -81,6 +82,7 @@ export default function PlayerInput() {
       const updatedPlayer: Player = { ...player };
       updatedPlayer.score = response.score;
       updatedPlayer.playerStatus = PlayerStatus.answer_correct;
+      playSound(SoundOptions.Correct);
       updatePlayerStats(updatedPlayer);
     }
   };
