@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import useAuth from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
@@ -24,13 +23,7 @@ export default function Navbar() {
           href="/"
           className="hover:bg-base-content/5 flex items-center gap-2 rounded-xl px-3 py-1.5"
         >
-          <Image
-            src="/favicon.svg"
-            alt="JKLM logo"
-            width={24}
-            height={24}
-            priority
-          />
+          <img src="/favicon.svg" alt="JKLM logo" width={24} height={24} />
           <span className="text-base-content text-sm font-semibold tracking-wide sm:text-base">
             JKLM Trivia
           </span>
