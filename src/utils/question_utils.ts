@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
 import path from "path";
 import type { Question, QuestionHashOnly } from "../types/question";
-import _ from "lodash";
 import ky from "ky";
+import { sampleSize } from "lodash-es";
 
 // Static data files generated during prebuild.
 const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
@@ -33,7 +33,7 @@ export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
   const hashes: string[] = Object.keys(questionPathMap);
   if (hashes.length === 0 || count <= 0) return [];
 
-  const shuffled: string[] = _.sampleSize(hashes, count);
+  const shuffled: string[] = sampleSize(hashes, count);
   return shuffled.map((hash) => ({ hash }));
 }
 

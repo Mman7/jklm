@@ -4,8 +4,8 @@ import { ServerEvent } from "@/src/types/enum/server_events";
 import { Question, QuestionHashOnly } from "@/src/types/question";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
-import _ from "lodash";
 import ky from "ky";
+import { chunk } from "lodash-es";
 
 export const hostRoom = async ({
   playerId,
@@ -77,7 +77,7 @@ export const getQuestions = (
     const hashes = questions.map((question) => question.hash);
 
     if (hashes.length === 0) return [];
-    const hashChunks = _.chunk(hashes, BATCH_SIZE);
+    const hashChunks = chunk(hashes, BATCH_SIZE);
 
     // Fetch question details in batches and merge results.
     const chunkResults = await Promise.all(
@@ -95,7 +95,9 @@ export const getQuestions = (
 
     const merged = chunkResults.flat();
     // Filter out any failed question loads (e.g. invalid hash) and return.
-    return merged.filter((question): question is Question => question !== null);
+    return merged.filter(
+      (question: Question | null): question is Question => question !== null,
+    );
   })();
 };
 

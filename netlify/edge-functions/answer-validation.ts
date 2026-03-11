@@ -1,5 +1,39 @@
 import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
-import { AnswerComparator } from "../../src/utils/answer_comparator";
+// Inline a lightweight copy of the shared AnswerComparator to avoid
+// cross-project imports that the edge bundler (Deno) struggles to resolve.
+function cleanToken(token: string): string {
+  let out = "";
+  for (let i = 0; i < token.length; i++) {
+    const ch = token[i];
+    const code = ch.charCodeAt(0);
+    if ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+function AnswerComparator(answerInStore: string, submitAnswer: string): boolean {
+  if (!submitAnswer || !submitAnswer.trim()) return false;
+
+  const normalizedStore = answerInStore.trim().toLowerCase();
+  const normalizedSubmit = submitAnswer.trim().toLowerCase();
+  if (normalizedStore === normalizedSubmit) return true;
+
+  const answerParts = normalizedStore.split(" ");
+  const cleanedAnswerParts = answerParts.map(cleanToken).filter((w) => w.length > 0);
+
+  const submitParts = normalizedSubmit.split(" ");
+  let answerIndex = 0;
+  for (const submitWord of submitParts) {
+    if (answerIndex >= cleanedAnswerParts.length) break;
+    const cleanedSubmitWord = cleanToken(submitWord);
+    if (cleanedSubmitWord === cleanedAnswerParts[answerIndex]) answerIndex++;
+  }
+
+  if (answerIndex === cleanedAnswerParts.length) return true;
+  return submitParts.includes(normalizedStore);
+}
 // Avoid importing `lodash` in edge functions (experimental support).
 // Use a small native transformation instead to keep the bundle minimal.
 
