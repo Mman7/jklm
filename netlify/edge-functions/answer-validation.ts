@@ -1,6 +1,7 @@
 import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
 import { AnswerComparator } from "../../src/utils/answer_comparator";
-import _ from "lodash";
+// Avoid importing `lodash` in edge functions (experimental support).
+// Use a small native transformation instead to keep the bundle minimal.
 
 interface EdgeContext {
   requestId?: string;
@@ -18,8 +19,8 @@ type AnswerMap = Record<string, string>;
 const normalize = (value: string): string =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
-const answerMap: AnswerMap = _.mapValues(rawAnswerMap as AnswerMap, (answer) =>
-  normalize(answer),
+const answerMap: AnswerMap = Object.fromEntries(
+  Object.entries(rawAnswerMap as AnswerMap).map(([k, v]) => [k, normalize(String(v))]),
 );
 
 export default async function answerValidation(
