@@ -1,7 +1,6 @@
 import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
 import { AnswerComparator } from "../../src/utils/answer_comparator";
 import _ from "lodash";
-import ky from "ky";
 
 interface EdgeContext {
   requestId?: string;
@@ -66,15 +65,19 @@ export default async function answerValidation(
     // For correct answers, we call the internal API to handle scoring and notifications.
     const internalApiUrl = new URL("/api/answer-validation", request.url);
 
-    const functionResponse = await ky.post(internalApiUrl.toString(), {
-      json: payload,
+    // Use the native fetch API in edge runtime instead of `ky` to avoid
+    // bundling unsupported npm modules into the edge function.
+    const functionResponse = await fetch(internalApiUrl.toString(), {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "x-answer-prevalidated": "true",
       },
-      throwHttpErrors: false,
+      body: JSON.stringify(payload),
     });
 
-    return new Response(functionResponse.body, {
+    const responseText = await functionResponse.text();
+    return new Response(responseText, {
       status: functionResponse.status,
       headers: {
         "Content-Type": "application/json",
