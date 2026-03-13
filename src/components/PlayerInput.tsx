@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { sendMessage } from "../library/client/ably_client";
 import ky from "ky";
-import useAuth from "../zustands/useAuthStore";
-import useQuestion from "../zustands/useQuestionStore";
+import { useAuthStore } from "../zustands/useAuthStore";
+import { useQuestionStore } from "../zustands/useQuestionStore";
 import {
   AnswerValidationRequest,
   AnswerValidationResponse,
 } from "../types/answer_validation";
-import useRoom from "../zustands/useRoomStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 import { Player } from "../types/player";
 import { PlayerStatus } from "../types/enum/player_status";
 import { playSound, SoundOptions } from "../utils/play_sounds";
@@ -52,9 +52,11 @@ async function validateAnswer(
  * Handles local state for the input field and server communication for answer validation.
  */
 export default function PlayerInput() {
-  const { playerId } = useAuth();
-  const { room, player, updatePlayerStats } = useRoom();
-  const { currentQuestionHash } = useQuestion();
+  const playerId = useAuthStore((s) => s.playerId);
+  const room = useRoomStore((s) => s.room);
+  const player = useRoomStore((s) => s.player);
+  const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
   const [inputValue, setInputValue] = useState<string>("");
   const isAnswerLocked = player?.playerStatus === PlayerStatus.answer_correct;
 

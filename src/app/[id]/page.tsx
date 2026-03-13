@@ -17,32 +17,42 @@ import useRoundCompletionHandler from "@/src/hooks/useRoundCompletionHandler";
 import usePlayerStatsUpdater from "@/src/hooks/usePlayerStats";
 import useUserValid from "@/src/hooks/useUserValid";
 import { enterChannel } from "@/src/library/client/ably_client";
-import useAuth from "@/src/zustands/useAuthStore";
-import useQuestion from "@/src/zustands/useQuestionStore";
-import useNameDialog from "@/src/zustands/useNameDialogStore";
-import useRoom from "@/src/zustands/useRoomStore";
+import { useAuthStore } from "@/src/zustands/useAuthStore";
+import {
+  useQuestionActions,
+  useQuestionStore,
+} from "@/src/zustands/useQuestionStore";
+import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
+import { useRoomStore } from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useRoomInitializer from "@/src/hooks/useRoomInitializer";
-import useShowAnswer from "@/src/zustands/useShowAnswerStore";
-import useGame from "@/src/zustands/useGameStore";
+import { useShowAnswerStore } from "@/src/zustands/useShowAnswerStore";
+import { useGameActions, useGameStore } from "@/src/zustands/useGameStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import { PlayerStatus } from "@/src/types/enum/player_status";
 import { Trophy, Users, X } from "lucide-react";
 
 export default function GamePage() {
-  const { playerId, name } = useAuth();
+  const playerId = useAuthStore((s) => s.playerId);
+  const name = useAuthStore((s) => s.name);
   const params = useParams();
   const roomId = typeof params.id === "string" ? params.id : "";
-  const { setChannel, updatePlayerStats, player, room, channel } = useRoom();
+  const setChannel = useRoomStore((s) => s.setChannel);
+  const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
+  const player = useRoomStore((s) => s.player);
+  const room = useRoomStore((s) => s.room);
+  const channel = useRoomStore((s) => s.channel);
   const mounted = useMounted();
   const { isUserValid } = useUserValid();
-  const { setShowNameDialog } = useNameDialog();
-  const { setCurrentQuestionHash, currentQuestionHash, questionList } =
-    useQuestion();
-  const { showAnswer } = useShowAnswer();
-  const { setGameReady, timer } = useGame();
+  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
+  const { setCurrentQuestionHash } = useQuestionActions();
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
+  const questionList = useQuestionStore((s) => s.questionList);
+  const showAnswer = useShowAnswerStore((s) => s.showAnswer);
+  const { setGameReady } = useGameActions();
+  const timer = useGameStore((s) => s.timer);
   const { players } = useRoomPlayers(channel);
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const [joinedQuestionHash, setJoinedQuestionHash] = useState<string | null>(
@@ -115,7 +125,7 @@ export default function GamePage() {
     questionList,
     roomId,
   });
-  // TODO
+
   const isGameReady = players.length >= 1;
 
   useEffect(() => {
@@ -153,18 +163,12 @@ export default function GamePage() {
       )
     : 0;
   const currentRound = foundRoundIndex >= 0 ? foundRoundIndex + 1 : 1;
+
   const questionDurationMs = (room?.questionDurationSeconds ?? 20) * 1000;
+  const remainingMs = showAnswer ? 0 : (timer ?? questionDurationMs);
   const timerProgressPercent =
     hasJoinedGame && isGameReady
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            ((showAnswer ? 0 : (timer ?? questionDurationMs)) /
-              questionDurationMs) *
-              100,
-          ),
-        )
+      ? Math.max(0, Math.min(100, (remainingMs / questionDurationMs) * 100))
       : 100;
 
   const handleJoinGame = () => {

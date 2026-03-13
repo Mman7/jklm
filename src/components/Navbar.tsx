@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import useAuth from "../zustands/useAuthStore";
+import { useAuthStore } from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
-import useNameDialog from "../zustands/useNameDialogStore";
+import { useNameDialogStore } from "../zustands/useNameDialogStore";
 
 export default function Navbar() {
-  const { name } = useAuth();
-  const { setShowNameDialog } = useNameDialog();
+  const name = useAuthStore((s) => s.name);
+  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
   const initials = name.trim().slice(0, 2).toUpperCase();
 
   const path = usePathname();

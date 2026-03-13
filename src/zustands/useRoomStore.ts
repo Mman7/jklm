@@ -16,7 +16,7 @@ interface RoomStore {
   setChannel: (channel: Ably.RealtimeChannel | null) => void;
 }
 
-const useRoomStore = create<RoomStore>((set) => ({
+export const useRoomStore = create<RoomStore>((set) => ({
   room: null,
   setRoom: (roomStat: Room) => set(() => ({ room: roomStat })),
   player: null,
@@ -30,29 +30,4 @@ const useRoomStore = create<RoomStore>((set) => ({
   setChannel: (channelValue) => set(() => ({ channel: channelValue })),
 }));
 
-export default function useRoom() {
-  const {
-    room,
-    setRoom,
-    channel,
-    setChannel,
-    player,
-    updatePlayerStats,
-    players,
-    setPlayers,
-    lastChat,
-    setLastChat,
-  } = useRoomStore();
-  return {
-    room,
-    setRoom,
-    channel,
-    setChannel,
-    player,
-    updatePlayerStats,
-    players,
-    setPlayers,
-    lastChat,
-    setLastChat,
-  };
-}
+export default useRoomStore;

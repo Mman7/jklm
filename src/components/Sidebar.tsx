@@ -3,18 +3,19 @@
 import { updateRoomSettings } from "@/src/library/client/client";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import useGame from "../zustands/useGameStore";
-import useAuth from "../zustands/useAuthStore";
-import useRoom from "../zustands/useRoomStore";
+import { useGameStore } from "../zustands/useGameStore";
+import { useAuthStore } from "../zustands/useAuthStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 
 const DEFAULT_TARGET_SCORE = 100;
 const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
 export default function Sidebar() {
   const path = usePathname();
-  const { gameReady } = useGame();
-  const { playerId } = useAuth();
-  const { room, setRoom } = useRoom();
+  const gameReady = useGameStore((s) => s.gameReady);
+  const playerId = useAuthStore((s) => s.playerId);
+  const room = useRoomStore((s) => s.room);
+  const setRoom = useRoomStore((s) => s.setRoom);
   const [targetScore, setTargetScore] = useState(DEFAULT_TARGET_SCORE);
   const [questionDurationSeconds, setQuestionDurationSeconds] = useState(
     DEFAULT_QUESTION_DURATION_SECONDS,

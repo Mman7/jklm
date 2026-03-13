@@ -1,15 +1,18 @@
 "use client";
 
 import Dialog from "./dialog";
-import useNameDialog from "@/src/zustands/useNameDialogStore";
+import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
 import { useEffect, useState } from "react";
 import { generateNameWithUUID } from "@/src/library/client/client";
-import useAuth from "@/src/zustands/useAuthStore";
+import { useAuthStore } from "@/src/zustands/useAuthStore";
 
 export default function NameDialog() {
-  const { setShowNameDialog, showNameDialog } = useNameDialog();
+  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
+  const showNameDialog = useNameDialogStore((s) => s.showNameDialog);
   const [inputValue, setInputValue] = useState<string>("");
-  const { name, setName, setPlayerId } = useAuth();
+  const name = useAuthStore((s) => s.name);
+  const setName = useAuthStore((s) => s.setName);
+  const setPlayerId = useAuthStore((s) => s.setPlayerId);
 
   const handleSubmit = () => {
     setName(inputValue);

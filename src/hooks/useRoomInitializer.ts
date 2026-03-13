@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { getRoom } from "../library/client/client";
-import useLoadingDialog from "../zustands/useLoadingStore";
+import { useLoadingStore } from "../zustands/useLoadingStore";
 import { useParams, useRouter } from "next/navigation";
-import useRoom from "../zustands/useRoomStore";
-import useQuestion from "../zustands/useQuestionStore";
+import { useRoomStore } from "../zustands/useRoomStore";
+import {
+  useQuestionActions,
+  useQuestionStore,
+} from "../zustands/useQuestionStore";
 
 /**
  * Custom hook to handle the initialization logic for a room.
@@ -13,7 +16,7 @@ import useQuestion from "../zustands/useQuestionStore";
  */
 export default function useRoomInitializer() {
   // Access the function to toggle the loading dialog state from the global store
-  const { setShowLoading } = useLoadingDialog();
+  const setShowLoading = useLoadingStore((s) => s.setShowLoading);
 
   // Router instance for navigation
   const router = useRouter();
@@ -26,10 +29,10 @@ export default function useRoomInitializer() {
   const roomId = typeof params.id === "string" ? params.id : "";
 
   // Destructure the 'setRoom' action from the global room store
-  const { setRoom } = useRoom();
+  const setRoom = useRoomStore((s) => s.setRoom);
 
   // Destructure the 'setQuestionList' action from the global question store
-  const { setQuestionList } = useQuestion();
+  const { setQuestionList } = useQuestionActions();
 
   useEffect(() => {
     /**

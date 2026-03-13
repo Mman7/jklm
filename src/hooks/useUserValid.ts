@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import useAuth from "../zustands/useAuthStore";
+import { useAuthStore } from "../zustands/useAuthStore";
 import useMounted from "./useMounted";
 
 /**
@@ -15,7 +15,8 @@ import useMounted from "./useMounted";
  *   - `isUserHasId`: true if the user's playerId is set.
  */
 export default function useUserValid() {
-  const { name, playerId } = useAuth();
+  const name = useAuthStore((s) => s.name);
+  const playerId = useAuthStore((s) => s.playerId);
   const [isUserHasName, setIsUserHasName] = useState(false);
   const [isUserHasId, setIsUserHasId] = useState(false);
   const mounted = useMounted();

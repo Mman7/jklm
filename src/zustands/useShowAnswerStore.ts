@@ -9,10 +9,4 @@ export const useShowAnswerStore = create<ShowAnswerStore>((set) => ({
   setShowAnswer: (val) => set((state) => ({ showAnswer: val })),
 }));
 
-export default function useShowAnswer() {
-  const { showAnswer, setShowAnswer } = useShowAnswerStore();
-  return {
-    showAnswer,
-    setShowAnswer,
-  };
-}
+export default useShowAnswerStore;

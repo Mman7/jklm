@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import useGame from "../zustands/useGameStore";
+import { useGameActions } from "../zustands/useGameStore";
 
 /**
  * Custom hook for managing a countdown timer with pause/resume functionality.
@@ -23,7 +23,7 @@ export default function useTimer(endTimeMs: number | null, paused = false) {
   const wasPausedRef = useRef(paused);
 
   // Hook to update the global game timer state
-  const { setTimer } = useGame();
+  const { setTimer } = useGameActions();
 
   /**
    * Calculates time remaining until the target end time.

@@ -1,30 +1,31 @@
 import { useEffect, useRef, useCallback } from "react";
 import { SyncDataMessage } from "../types/sync_data";
-import useGame from "../zustands/useGameStore";
-import useQuestion from "../zustands/useQuestionStore";
+import { useGameStore } from "../zustands/useGameStore";
+import {
+  useQuestionActions,
+  useQuestionStore,
+} from "../zustands/useQuestionStore";
 import {
   sendSyncData,
   sendSyncRequest,
   subscribeToSync,
 } from "../library/client/ably_client";
-import useRoom from "../zustands/useRoomStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 import useMounted from "./useMounted";
-import useAuth from "../zustands/useAuthStore";
-import useShowAnswer from "../zustands/useShowAnswerStore";
+import { useAuthStore } from "../zustands/useAuthStore";
+import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 
 const BROADCAST_REQUESTER_ID = "all";
 
 export default function useDataSyncManager() {
-  const { timer } = useGame();
-  const { playerId } = useAuth();
-  const { showAnswer, setShowAnswer } = useShowAnswer();
-  const {
-    currentQuestion,
-    currentQuestionHash,
-    setCurrentQuestion,
-    setCurrentQuestionHash,
-  } = useQuestion();
-  const { channel } = useRoom();
+  const timer = useGameStore((s) => s.timer);
+  const playerId = useAuthStore((s) => s.playerId);
+  const showAnswer = useShowAnswerStore((s) => s.showAnswer);
+  const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
+  const currentQuestion = useQuestionStore((s) => s.currentQuestion);
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
+  const { setCurrentQuestionHash, setCurrentQuestion } = useQuestionActions();
+  const channel = useRoomStore((s) => s.channel);
   const mounted = useMounted();
 
   // Keep latest values in refs so callbacks/subscriptions always read fresh state

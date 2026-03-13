@@ -1,12 +1,14 @@
-import useGame from "../zustands/useGameStore";
-import useQuestion from "../zustands/useQuestionStore";
-import useRoom from "../zustands/useRoomStore";
+import { useGameActions } from "../zustands/useGameStore";
+import { useQuestionActions } from "../zustands/useQuestionStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
 
 export default function useGameController() {
-  const { setShowPicture } = useGame();
-  const { goToNextQuestion } = useQuestion();
-  const { player, updatePlayerStats, setLastChat } = useRoom();
+  const { setShowPicture } = useGameActions();
+  const { goToNextQuestion } = useQuestionActions();
+  const player = useRoomStore((s) => s.player);
+  const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
+  const setLastChat = useRoomStore((s) => s.setLastChat);
 
   const clearPlayerStatus = () => {
     // Status reset happens only for an active local player.

@@ -1,15 +1,17 @@
 import { useEffect, useRef } from "react";
-import useQuestion from "../zustands/useQuestionStore";
+import { useQuestionStore } from "../zustands/useQuestionStore";
 import useTimer from "../hooks/useTimer";
-import useShowAnswer from "../zustands/useShowAnswerStore";
-import useGame from "../zustands/useGameStore";
-import useLoadingDialog from "../zustands/useLoadingStore";
+import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
+import { useGameStore } from "../zustands/useGameStore";
+import { useLoadingStore } from "../zustands/useLoadingStore";
 
 export default function Timer() {
-  const { currentQuestion, currentQuestionHash } = useQuestion();
-  const { showAnswer, setShowAnswer } = useShowAnswer();
-  const { showPicture } = useGame();
-  const { showLoading } = useLoadingDialog();
+  const currentQuestion = useQuestionStore((s) => s.currentQuestion);
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
+  const showAnswer = useShowAnswerStore((s) => s.showAnswer);
+  const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
+  const showPicture = useGameStore((s) => s.showPicture);
+  const showLoading = useLoadingStore((s) => s.showLoading);
   const isCurrentQuestionAligned =
     !!currentQuestionHash?.hash &&
     currentQuestion?.challenge.hash === currentQuestionHash.hash;

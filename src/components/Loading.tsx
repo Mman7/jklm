@@ -1,10 +1,10 @@
 "use client";
 
-import useLoadingDialog from "../zustands/useLoadingStore";
+import { useLoadingStore } from "../zustands/useLoadingStore";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function Loading() {
-  const { showLoading } = useLoadingDialog();
+  const showLoading = useLoadingStore((s) => s.showLoading);
   return (
     <dialog
       id="my_modal_3"

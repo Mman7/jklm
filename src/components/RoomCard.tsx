@@ -1,16 +1,16 @@
 import { Room } from "@/src/types/room";
-import useNameDialog from "@/src/zustands/useNameDialogStore";
+import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
 import { useRouter } from "next/navigation";
 import useUserValid from "../hooks/useUserValid";
 import { getRoom } from "../library/client/client";
-import useLoadingDialog from "../zustands/useLoadingStore";
-import useRoom from "../zustands/useRoomStore";
+import { useLoadingStore } from "../zustands/useLoadingStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 
 export default function RoomCard({ room }: { room: Room }) {
   const router = useRouter();
-  const { setShowNameDialog } = useNameDialog();
-  const { setShowLoading } = useLoadingDialog();
-  const { setRoom } = useRoom();
+  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
+  const setShowLoading = useLoadingStore((s) => s.setShowLoading);
+  const setRoom = useRoomStore((s) => s.setRoom);
   const { isUserValid } = useUserValid();
 
   const handleJoinRoom = async () => {
@@ -52,19 +52,21 @@ export default function RoomCard({ room }: { room: Room }) {
     >
       <div className="from-primary/10 to-secondary/10 pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="relative z-10 flex items-start  justify-between">
+      <div className="relative z-10 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-primary/15 text-primary grid h-10 w-10 place-items-center rounded-full text-sm font-bold">
             {room.hostId.split("-")[0][0]?.toUpperCase()}
           </div>
           <div>
-            <h1 className=" group-hover:text-primary text-lg font-semibold transition-colors duration-300">
+            <h1 className="group-hover:text-primary text-lg font-semibold transition-colors duration-300">
               {room.hostId.split("-")[0]}'s Room
             </h1>
             <p className="text-base-content/70 text-xs">Ready to join</p>
           </div>
         </div>
-        <span className="badge badge-primary badge-outline ml-3 min-w-1">In-Game</span>
+        <span className="badge badge-primary badge-outline ml-3 min-w-1">
+          In-Game
+        </span>
       </div>
 
       <div className="relative z-10 mt-4 flex items-center justify-between">

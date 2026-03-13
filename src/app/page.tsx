@@ -8,12 +8,12 @@ import { getRoom, hostRoom } from "../library/client/client";
 import useJoinDialog from "../hooks/useJoinDialog";
 import { Room } from "../types/room";
 import useUserValid from "../hooks/useUserValid";
-import useNameDialog from "../zustands/useNameDialogStore";
-import useLoadingDialog from "../zustands/useLoadingStore";
+import { useNameDialogStore } from "../zustands/useNameDialogStore";
+import { useLoadingStore } from "../zustands/useLoadingStore";
 import Dialog from "../components/dialogs/dialog";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import useRoom from "../zustands/useRoomStore";
-import useAuth from "../zustands/useAuthStore";
+import { useRoomStore } from "../zustands/useRoomStore";
+import { useAuthStore } from "../zustands/useAuthStore";
 import { CircleHelp, PenLine, Users, Trophy, CirclePlus } from "lucide-react";
 
 export default function Home() {
@@ -22,10 +22,11 @@ export default function Home() {
   const router = useRouter();
   const [showNotFound, setNotFound] = useState(false);
   const { isUserValid } = useUserValid();
-  const { setShowNameDialog } = useNameDialog();
-  const { setShowLoading } = useLoadingDialog();
-  const { playerId } = useAuth();
-  const { setRoom, channel } = useRoom();
+  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
+  const setShowLoading = useLoadingStore((s) => s.setShowLoading);
+  const playerId = useAuthStore((s) => s.playerId);
+  const setRoom = useRoomStore((s) => s.setRoom);
+  const channel = useRoomStore((s) => s.channel);
 
   useEffect(() => {
     // Reset stale client state if an old channel instance leaks into home.

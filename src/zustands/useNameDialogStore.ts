@@ -5,13 +5,10 @@ interface useNameDialogStore {
   setShowNameDialog: (showDialog: boolean) => void;
 }
 
-const useNameDialogStore = create<useNameDialogStore>((set) => ({
+export const useNameDialogStore = create<useNameDialogStore>((set) => ({
   showNameDialog: false,
   setShowNameDialog: (showDialog: boolean) =>
     set(() => ({ showNameDialog: showDialog })),
 }));
 
-export default function useNameDialog() {
-  const { showNameDialog, setShowNameDialog } = useNameDialogStore();
-  return { showNameDialog, setShowNameDialog };
-}
+export default useNameDialogStore;

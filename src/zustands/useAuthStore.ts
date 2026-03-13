@@ -8,7 +8,7 @@ interface AuthStore {
   setPlayerId: (uuid: string) => void;
 }
 
-const useAuthStore = create<AuthStore>()(
+export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       name: "",
@@ -22,7 +22,4 @@ const useAuthStore = create<AuthStore>()(
   ),
 );
 
-export default function useAuth() {
-  const { name, setName, playerId, setPlayerId } = useAuthStore();
-  return { name, setName, playerId, setPlayerId };
-}
+export default useAuthStore;

@@ -1,9 +1,11 @@
 import useSWR from "swr";
 import { FetchedStatus, PlayerStatus } from "@/src/types/enum/player_status";
-import useGame from "@/src/zustands/useGameStore";
-import useLoadingDialog from "@/src/zustands/useLoadingStore";
-import useQuestion from "@/src/zustands/useQuestionStore";
-import useRoom from "@/src/zustands/useRoomStore";
+import { useGameStore } from "@/src/zustands/useGameStore";
+import { useLoadingStore } from "@/src/zustands/useLoadingStore";
+import useQuestionStore, {
+  useQuestionActions,
+} from "@/src/zustands/useQuestionStore";
+import { useRoomStore } from "@/src/zustands/useRoomStore";
 import { useEffect, useMemo } from "react";
 import { getQuestions } from "@/src/library/client/client";
 import { Question } from "@/src/types/question";
@@ -13,15 +15,15 @@ import Base64Image from "./Base64Image";
 const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
 export default function ChallengeDisplayer() {
-  const { showPicture } = useGame();
-  const {
-    currentQuestionHash,
-    currentQuestion,
-    questionList,
-    setCurrentQuestion,
-  } = useQuestion();
-  const { setShowLoading } = useLoadingDialog();
-  const { updatePlayerStats, player, room } = useRoom();
+  const showPicture = useGameStore((s) => s.showPicture);
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
+  const currentQuestion = useQuestionStore((s) => s.currentQuestion);
+  const questionList = useQuestionStore((s) => s.questionList);
+  const { setCurrentQuestion } = useQuestionActions();
+  const setShowLoading = useLoadingStore((s) => s.setShowLoading);
+  const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
+  const player = useRoomStore((s) => s.player);
+  const room = useRoomStore((s) => s.room);
 
   const roundHashes = useMemo(
     () => questionList.map((question) => question.hash),

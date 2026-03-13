@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import useShowAnswer from "../zustands/useShowAnswerStore";
+import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 import useGameController from "../hooks/useGameController";
-import useQuestion from "../zustands/useQuestionStore";
+import { useQuestionStore } from "../zustands/useQuestionStore";
 import { getAnswer } from "../library/client/client";
 
 export default function ShowAnswer() {
-  const { setShowAnswer, showAnswer } = useShowAnswer();
-  const { currentQuestionHash } = useQuestion();
+  const showAnswer = useShowAnswerStore((s) => s.showAnswer);
+  const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
   const { handleGoToNextQuestion } = useGameController();
 
   // Using refs to maintain stable references for function calls across re-renders

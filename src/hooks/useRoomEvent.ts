@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
-import useRoom from "../zustands/useRoomStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 import { subscribeToEvents } from "../library/client/ably_client";
 import { ServerEvent } from "../types/enum/server_events";
 import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
 import { Player } from "../types/player";
 import { useRoomPlayers } from "./useRoomPlayers";
 import useGameController from "./useGameController";
-import useQuestion from "../zustands/useQuestionStore";
+import {
+  useQuestionActions,
+  useQuestionStore,
+} from "../zustands/useQuestionStore";
 import { QuestionHashOnly } from "../types/question";
-import useShowAnswer from "../zustands/useShowAnswerStore";
+import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 import { useParams, useRouter } from "next/navigation";
 
 export default function useRoomEvent() {
@@ -16,17 +19,16 @@ export default function useRoomEvent() {
   const params = useParams();
   // Room id is sourced from dynamic route segment.
   const roomId = typeof params.id === "string" ? params.id : "";
-  const { channel, updatePlayerStats, player } = useRoom();
+  const channel = useRoomStore((s) => s.channel);
+  const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
+  const player = useRoomStore((s) => s.player);
   const { isAllPlayerCorrected, isAllPlayerFetched, players } =
     useRoomPlayers(channel);
   const { showPicture } = useGameController();
-  const {
-    setQuestionList,
-    setCurrentQuestionHash,
-    setCurrentQuestion,
-    currentQuestionHash,
-  } = useQuestion();
-  const { setShowAnswer } = useShowAnswer();
+  const { setQuestionList, setCurrentQuestionHash, setCurrentQuestion } =
+    useQuestionActions();
+  const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
+  const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
   // Keep latest player object for subscription callbacks.
   const playerRef = useRef(player);
   // Edge-detection refs to avoid repeating one-time UI actions.

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import useRoom from "../zustands/useRoomStore";
+import { useRoomStore } from "../zustands/useRoomStore";
 import { ablyUpdatePlayerStats } from "../library/client/ably_client";
 
 export default function usePlayerStatsUpdater(enabled: boolean) {
-  const { player } = useRoom();
+  const player = useRoomStore((s) => s.player);
 
   useEffect(() => {
     if (!enabled || !player) return;

@@ -1,7 +1,7 @@
 import { PlayerStatus } from "@/src/types/enum/player_status";
 import { Player } from "@/src/types/player";
 import { useLastChat } from "@/src/hooks/useLastChat";
-import useAuth from "@/src/zustands/useAuthStore";
+import { useAuthStore } from "@/src/zustands/useAuthStore";
 import { CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -10,7 +10,7 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const { playerId } = useAuth();
+  const playerId = useAuthStore((s) => s.playerId);
   const { lastChat } = useLastChat();
   const isAnswerCorrect = player.playerStatus === PlayerStatus.answer_correct;
   const isCurrentPlayer = player.playerId === playerId;

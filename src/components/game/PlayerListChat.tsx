@@ -1,7 +1,7 @@
 "use client";
 import PlayerCard from "./PlayerCard";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
-import useRoom from "@/src/zustands/useRoomStore";
+import { useRoomStore } from "@/src/zustands/useRoomStore";
 import { Player } from "@/src/types/player";
 import { Users } from "lucide-react";
 import type { ReactNode } from "react";
@@ -15,7 +15,7 @@ export default function PlayerListChat({
   className,
   headerAction,
 }: PlayerListChatProps) {
-  const { channel } = useRoom();
+  const channel = useRoomStore((s) => s.channel);
   const { players } = useRoomPlayers(channel);
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
