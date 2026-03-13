@@ -3,10 +3,7 @@ import { getRoom } from "../library/client/client";
 import { useLoadingStore } from "../zustands/useLoadingStore";
 import { useParams, useRouter } from "next/navigation";
 import { useRoomStore } from "../zustands/useRoomStore";
-import {
-  useQuestionActions,
-  useQuestionStore,
-} from "../zustands/useQuestionStore";
+import { useQuestionActions } from "../zustands/useQuestionStore";
 
 /**
  * Custom hook to handle the initialization logic for a room.
