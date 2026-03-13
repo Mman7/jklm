@@ -66,6 +66,7 @@ export default function useRoundCompletionHandler({
     // Round key includes first question + completed question to dedupe retries.
     const roundKey = `${questionList[0]?.hash ?? "none"}:${completedQuestionHash ?? "none"}`;
 
+    // Only the host triggers new question generation to avoid conflicts.
     if (
       !hasJoinedGame ||
       !hasJustFinishedLastQuestion ||
@@ -81,6 +82,7 @@ export default function useRoundCompletionHandler({
     isRequestingNewQuestionRef.current = true;
     lastTriggeredNewQuestionKeyRef.current = roundKey;
 
+    // Notify server to advance to next question, which will broadcast new round data.
     noticeServerNewQuestion(roomId)
       .catch(() => {
         // Allow retry on failure by clearing dedupe key.
