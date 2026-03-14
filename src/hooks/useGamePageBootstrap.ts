@@ -5,11 +5,12 @@ import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
 import { Player } from "../types/player";
 import { QuestionHashOnly } from "../types/question";
 import { Room } from "../types/room";
+import { OpenDialogTypes } from "../zustands/useDialogStore";
 
 type UseGamePageBootstrapParams = {
   mounted: boolean;
   isUserValid: boolean;
-  setShowNameDialog: (showDialog: boolean) => void;
+  openDialog: (dialog: OpenDialogTypes) => void;
   roomId: string;
   playerId: string;
   setChannel: (channel: Ably.RealtimeChannel | null) => void;
@@ -24,7 +25,7 @@ type UseGamePageBootstrapParams = {
 export default function useGamePageBootstrap({
   mounted,
   isUserValid,
-  setShowNameDialog,
+  openDialog,
   roomId,
   playerId,
   setChannel,
@@ -41,11 +42,11 @@ export default function useGamePageBootstrap({
   useEffect(() => {
     // Prompt for name setup when user identity is not valid.
     if (!isUserValid) {
-      setShowNameDialog(true);
+      openDialog(OpenDialogTypes.NameDialog);
     } else {
-      setShowNameDialog(false);
+      openDialog(OpenDialogTypes.None);
     }
-  }, [mounted, isUserValid, setShowNameDialog]);
+  }, [mounted, isUserValid]);
 
   useEffect(() => {
     if (!mounted) return;

@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { useAuthStore } from "../zustands/useAuthStore";
 import { usePathname } from "next/navigation";
-import { useNameDialogStore } from "../zustands/useNameDialogStore";
+import { OpenDialogTypes, useDialogActions } from "../zustands/useDialogStore";
 
 export default function Navbar() {
   const name = useAuthStore((s) => s.name);
-  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
   const initials = name.trim().slice(0, 2).toUpperCase();
+  const { openDialog } = useDialogActions();
 
   const path = usePathname();
 
   const handleChangedName = () => {
-    setShowNameDialog(true);
+    openDialog(OpenDialogTypes.NameDialog);
   };
 
   return (

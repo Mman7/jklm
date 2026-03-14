@@ -1,33 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import JoinDialog from "../components/dialogs/joinDialog";
+import { useEffect } from "react";
 import RoomList from "../components/RoomList";
 import { useRouter } from "next/navigation";
-import { getRoom, hostRoom } from "../library/client/client";
-import useJoinDialog from "../hooks/useJoinDialog";
+import { hostRoom } from "../library/client/client";
 import { Room } from "../types/room";
 import useUserValid from "../hooks/useUserValid";
-import { useNameDialogStore } from "../zustands/useNameDialogStore";
 import { useLoadingStore } from "../zustands/useLoadingStore";
-import Dialog from "../components/dialogs/dialog";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useRoomStore } from "../zustands/useRoomStore";
 import { useAuthStore } from "../zustands/useAuthStore";
 import { CircleHelp, PenLine, Users, Trophy, CirclePlus } from "lucide-react";
+import { OpenDialogTypes, useDialogActions } from "../zustands/useDialogStore";
 
 export default function Home() {
-  const { openJoinDialog, setOpenJoinDialog, dialogCode, setDialogCode } =
-    useJoinDialog();
   const router = useRouter();
-  const [showNotFound, setNotFound] = useState(false);
   const { isUserValid } = useUserValid();
-  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
   const setShowLoading = useLoadingStore((s) => s.setShowLoading);
   const playerId = useAuthStore((s) => s.playerId);
   const setRoom = useRoomStore((s) => s.setRoom);
   const channel = useRoomStore((s) => s.channel);
-
+  const { openDialog } = useDialogActions();
   useEffect(() => {
     // Reset stale client state if an old channel instance leaks into home.
     if (channel) location.reload();
@@ -36,7 +28,7 @@ export default function Home() {
   const handleHostRoom = async () => {
     // Name/profile must exist before creating a room.
     if (!isUserValid) {
-      setShowNameDialog(true);
+      openDialog(OpenDialogTypes.NameDialog);
       return;
     }
 
@@ -50,31 +42,6 @@ export default function Home() {
     });
 
     // End loading state after host flow settles.
-    setShowLoading(false);
-  };
-
-  const handleJoinRoom = async () => {
-    // Require valid user identity before joining.
-    if (!isUserValid) {
-      setShowNameDialog(true);
-      return;
-    }
-
-    // Show loading while validating room code with server.
-    setShowLoading(true);
-
-    await getRoom(dialogCode)
-      .then((room: Room) => {
-        // Room exists: cache and navigate.
-        setRoom(room);
-        router.push(`/${room.id}`);
-      })
-      .catch(() => {
-        // Invalid code: open not-found dialog.
-        setNotFound(true);
-      });
-
-    // Hide loading spinner regardless of join result.
     setShowLoading(false);
   };
 
@@ -108,19 +75,11 @@ export default function Home() {
             <button
               className="btn bg-secondary btn-lg rounded-full border border-gray-300 font-semibold shadow-xs transition-all hover:scale-105 hover:shadow-xl"
               // Open dialog to enter room code.
-              onClick={() => setOpenJoinDialog(true)}
+              onClick={() => openDialog(OpenDialogTypes.JoinDialogDialog)}
             >
               <Users className="text-primary mt-0.5 shrink-0" size={16} />
               Join Room
             </button>
-            <JoinDialog
-              // Controlled dialog for room-code join flow.
-              open={openJoinDialog}
-              setClose={() => setOpenJoinDialog(false)}
-              setDialogCode={setDialogCode}
-              dialogCode={dialogCode}
-              callback={handleJoinRoom}
-            />
           </section>
         </div>
 
@@ -182,21 +141,6 @@ export default function Home() {
         {/* Live list of available rooms. */}
         <RoomList />
       </div>
-
-      <Dialog
-        // Modal shown when entered room code is not found.
-        open={showNotFound}
-        className="w-xs"
-        onClose={() => setNotFound(false)}
-      >
-        <DotLottieReact
-          src="/lotties/not_found.lottie"
-          className="aspect-square"
-          loop
-          autoplay
-        />
-        <h1 className="text-center text-lg font-semibold">Room not found</h1>
-      </Dialog>
     </div>
   );
 }

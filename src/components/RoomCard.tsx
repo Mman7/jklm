@@ -1,22 +1,22 @@
 import { Room } from "@/src/types/room";
-import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
 import { useRouter } from "next/navigation";
 import useUserValid from "../hooks/useUserValid";
 import { getRoom } from "../library/client/client";
 import { useLoadingStore } from "../zustands/useLoadingStore";
 import { useRoomStore } from "../zustands/useRoomStore";
+import { OpenDialogTypes, useDialogActions } from "../zustands/useDialogStore";
 
 export default function RoomCard({ room }: { room: Room }) {
   const router = useRouter();
-  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
   const setShowLoading = useLoadingStore((s) => s.setShowLoading);
   const setRoom = useRoomStore((s) => s.setRoom);
   const { isUserValid } = useUserValid();
+  const { openDialog } = useDialogActions();
 
   const handleJoinRoom = async () => {
     // Require a valid user profile before joining any room.
     if (!isUserValid) {
-      setShowNameDialog(true);
+      openDialog(OpenDialogTypes.NameDialog);
       return;
     }
 

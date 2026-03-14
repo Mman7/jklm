@@ -23,6 +23,7 @@ export default function Dialog({
         <form method="dialog">
           {/* if there is a button in form, it will close the modal */}
           <button
+            type="button"
             onClick={() => onClose()}
             className="btn btn-sm btn-circle btn-ghost hover:bg-base-content/10 absolute top-2 right-2"
           >
@@ -32,7 +33,9 @@ export default function Dialog({
         {children}
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button onClick={() => onClose()}>close</button>
+        <button type="button" onClick={() => onClose()}>
+          close
+        </button>
       </form>
     </dialog>
   );

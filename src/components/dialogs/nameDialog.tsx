@@ -1,27 +1,31 @@
 "use client";
 
 import Dialog from "./dialog";
-import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
 import { useEffect, useState } from "react";
 import { generateNameWithUUID } from "@/src/library/client/client";
 import { useAuthStore } from "@/src/zustands/useAuthStore";
+import useDialogStore, {
+  OpenDialogTypes,
+  useDialogActions,
+} from "@/src/zustands/useDialogStore";
 
 export default function NameDialog() {
-  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
-  const showNameDialog = useNameDialogStore((s) => s.showNameDialog);
   const [inputValue, setInputValue] = useState<string>("");
   const name = useAuthStore((s) => s.name);
   const setName = useAuthStore((s) => s.setName);
   const setPlayerId = useAuthStore((s) => s.setPlayerId);
+  const { closeDialog } = useDialogActions();
+  const dialogType = useDialogStore((state) => state.dialog);
 
   const handleSubmit = () => {
     setName(inputValue);
     setPlayerId(generateNameWithUUID(inputValue));
-    setShowNameDialog(false);
+
+    closeDialog();
   };
 
   const closeModal = () => {
-    setShowNameDialog(false);
+    closeDialog();
   };
 
   useEffect(() => {
@@ -29,7 +33,10 @@ export default function NameDialog() {
   }, [name]);
 
   return (
-    <Dialog open={showNameDialog} onClose={() => closeModal()}>
+    <Dialog
+      open={dialogType === OpenDialogTypes.NameDialog}
+      onClose={() => closeModal()}
+    >
       <div className="space-y-4">
         <h3 className="mb-3 text-xl font-bold">Enter Your Name</h3>
         <input

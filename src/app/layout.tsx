@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import NameDialog from "../components/dialogs/nameDialog";
 import Loading from "../components/Loading";
+import DialogManager from "../components/DialogManager";
 
 export const metadata: Metadata = {
   title: {
@@ -35,7 +35,8 @@ export default function RootLayout({
           </div>
           <Sidebar />
         </div>
-        <NameDialog />
+        <DialogManager />
+
         <Loading />
       </body>
     </html>

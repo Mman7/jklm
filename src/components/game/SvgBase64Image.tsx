@@ -3,10 +3,7 @@ interface SvgBase64ImageProps {
   alt: string;
 }
 
-export default function SvgBase64Image({
-  base64,
-  alt,
-}: SvgBase64ImageProps) {
+export default function SvgBase64Image({ base64, alt }: SvgBase64ImageProps) {
   return (
     <img
       className="h-auto max-h-96 max-w-full object-contain"

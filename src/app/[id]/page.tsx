@@ -22,7 +22,6 @@ import {
   useQuestionActions,
   useQuestionStore,
 } from "@/src/zustands/useQuestionStore";
-import { useNameDialogStore } from "@/src/zustands/useNameDialogStore";
 import { useRoomStore } from "@/src/zustands/useRoomStore";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -32,7 +31,11 @@ import { useGameActions, useGameStore } from "@/src/zustands/useGameStore";
 import ShowAnswer from "@/src/components/ShowAnswer";
 import { useRoomPlayers } from "@/src/hooks/useRoomPlayers";
 import { PlayerStatus } from "@/src/types/enum/player_status";
-import { Trophy, Users, X } from "lucide-react";
+import { SlidersHorizontal, Trophy, Users } from "lucide-react";
+import {
+  OpenDialogTypes,
+  useDialogActions,
+} from "@/src/zustands/useDialogStore";
 
 export default function GamePage() {
   const playerId = useAuthStore((s) => s.playerId);
@@ -46,7 +49,7 @@ export default function GamePage() {
   const channel = useRoomStore((s) => s.channel);
   const mounted = useMounted();
   const { isUserValid } = useUserValid();
-  const setShowNameDialog = useNameDialogStore((s) => s.setShowNameDialog);
+  const { openDialog } = useDialogActions();
   const { setCurrentQuestionHash } = useQuestionActions();
   const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
   const questionList = useQuestionStore((s) => s.questionList);
@@ -60,7 +63,6 @@ export default function GamePage() {
     null,
   );
   const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
-  const [isMobilePlayerListOpen, setIsMobilePlayerListOpen] = useState(false);
   const [lastCorrectQuestionHash, setLastCorrectQuestionHash] = useState<
     string | null
   >(null);
@@ -103,7 +105,7 @@ export default function GamePage() {
   useGamePageBootstrap({
     mounted,
     isUserValid,
-    setShowNameDialog,
+    openDialog,
     roomId,
     playerId,
     setChannel,
@@ -139,17 +141,6 @@ export default function GamePage() {
       setGameReady(false);
     };
   }, [setGameReady, setRound]);
-
-  useEffect(() => {
-    if (!isMobilePlayerListOpen) return;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isMobilePlayerListOpen]);
 
   if (!channel) return <div>Loading...</div>;
 
@@ -189,6 +180,12 @@ export default function GamePage() {
         <section className="flex-3">
           <header className="border-base-content/10 bg-base-100 my-3 flex h-16 items-center justify-between gap-4 rounded-3xl border-b px-4">
             <section className="flex items-center gap-2">
+              <button
+                className="btn btn-ghost btn-sm lg:hidden"
+                onClick={() => openDialog(OpenDialogTypes.GameSettingsDialog)}
+              >
+                <SlidersHorizontal size={14} className="text-primary" />
+              </button>
               <Trophy size={14} className="text-primary" />
               <div className="leading-tight">
                 {hasJoinedGame && (
@@ -214,7 +211,7 @@ export default function GamePage() {
               <button
                 type="button"
                 className="btn btn-ghost btn-sm lg:hidden"
-                onClick={() => setIsMobilePlayerListOpen(true)}
+                onClick={() => openDialog(OpenDialogTypes.PlayerChatDialog)}
                 aria-label="Open player list"
               >
                 <Users size={14} />
@@ -264,36 +261,6 @@ export default function GamePage() {
       )}
 
       <PlayerListChat className="m-2 hidden lg:flex" />
-
-      {isMobilePlayerListOpen && (
-        <div
-          className="fixed inset-0 z-50 lg:hidden"
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            type="button"
-            className="bg-base-content/40 absolute inset-0"
-            onClick={() => setIsMobilePlayerListOpen(false)}
-            aria-label="Close player list"
-          />
-          <div className="absolute top-0 right-0 h-full w-[min(22rem,92vw)] p-2">
-            <PlayerListChat
-              className="h-full w-full"
-              headerAction={
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-xs"
-                  onClick={() => setIsMobilePlayerListOpen(false)}
-                  aria-label="Close player list"
-                >
-                  <X size={14} />
-                </button>
-              }
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
