@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuestionStore } from "../zustands/useQuestionStore";
 import useTimer from "../hooks/useTimer";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
-import { useGameStore } from "../zustands/useGameStore";
+import { useGameActions, useGameStore } from "../zustands/useGameStore";
 import { useLoadingStore } from "../zustands/useLoadingStore";
 
 export default function Timer() {
@@ -11,6 +11,7 @@ export default function Timer() {
   const showAnswer = useShowAnswerStore((s) => s.showAnswer);
   const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
   const showPicture = useGameStore((s) => s.showPicture);
+  const { incRound } = useGameActions();
   const showLoading = useLoadingStore((s) => s.showLoading);
   const isCurrentQuestionAligned =
     !!currentQuestionHash?.hash &&
@@ -42,6 +43,7 @@ export default function Timer() {
 
     if (timeLeft.isExpired && !prevExpiredRef.current) {
       prevExpiredRef.current = true;
+      incRound();
       setShowAnswer(true);
     }
   }, [

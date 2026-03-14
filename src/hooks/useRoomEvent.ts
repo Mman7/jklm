@@ -6,6 +6,7 @@ import { FetchedStatus, PlayerStatus } from "../types/enum/player_status";
 import { Player } from "../types/player";
 import { useRoomPlayers } from "./useRoomPlayers";
 import useGameController from "./useGameController";
+import { useGameActions } from "../zustands/useGameStore";
 import {
   useQuestionActions,
   useQuestionStore,
@@ -25,6 +26,7 @@ export default function useRoomEvent() {
   const { isAllPlayerCorrected, isAllPlayerFetched, players } =
     useRoomPlayers(channel);
   const { showPicture } = useGameController();
+  const { incRound, setRound } = useGameActions();
   const { setQuestionList, setCurrentQuestionHash, setCurrentQuestion } =
     useQuestionActions();
   const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
@@ -93,6 +95,7 @@ export default function useRoomEvent() {
     if (!channel) return;
 
     const unsubscribe = subscribeToEvents((event) => {
+      console.log(event);
       // Handle room-level events and update local stores accordingly.
       switch (event.text) {
         case ServerEvent.PlayerAnsweredCorrectly:
@@ -109,15 +112,20 @@ export default function useRoomEvent() {
         case ServerEvent.NewQuestion:
           {
             // Server sends next round list; use first item as active question.
-            const nextQuestionList = (
-              event as { questionHash?: QuestionHashOnly[] }
-            ).questionHash;
-
+            const { questionHash: nextQuestionList, round } = event as {
+              questionHash?: QuestionHashOnly[];
+              round?: number;
+            };
             if (!nextQuestionList || nextQuestionList.length === 0) break;
 
             setQuestionList(nextQuestionList);
             setCurrentQuestion(null);
             setCurrentQuestionHash(nextQuestionList[0] || null);
+            if (typeof round === "number") {
+              setRound(round);
+            } else {
+              incRound();
+            }
             setShowAnswer(false);
 
             if (!playerRef.current) break;
@@ -156,22 +164,25 @@ export default function useRoomEvent() {
     channel,
     roomId,
     router,
+    incRound,
     setCurrentQuestion,
     setCurrentQuestionHash,
     setQuestionList,
+    setRound,
     setShowAnswer,
     updatePlayerStats,
   ]);
 
   // Show answer panel exactly once when everyone is fetched and correct.
   useEffect(() => {
-    if (
+    const shouldShowAnswer =
       seenFetchingForQuestionRef.current &&
       seenNonCorrectForQuestionRef.current &&
       isAllPlayerFetched &&
       isAllPlayerCorrected &&
-      !prevAllCorrectedRef.current
-    ) {
+      !prevAllCorrectedRef.current;
+
+    if (shouldShowAnswer) {
       setShowAnswer(true);
     }
 

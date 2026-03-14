@@ -74,7 +74,7 @@ export default function ShowAnswer() {
 
   return (
     <div
-      className={`${showAnswer && currentQuestionHash?.hash ? "block w-full flex-3 p-3" : "hidden"}`}
+      className={`${showAnswer && currentQuestionHash?.hash ? "block w-full flex-3 p-3" : "hidden"} animate-scale-fade-in`}
     >
       <section className="border-base-content/20 from-success/20 to-success/5 flex h-full w-full flex-col items-center justify-center gap-4 rounded-3xl border bg-linear-to-br p-6 shadow-xl backdrop-blur-xl">
         <div className="bg-success/20 rounded-full p-4">

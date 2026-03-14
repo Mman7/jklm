@@ -55,11 +55,13 @@ export const getAllRooms = (): Promise<Room[]> => {
   return ky.get("/api/room/all").json<Room[]>();
 };
 
-export const noticeServerNewQuestion = (roomId: string) => {
+export const noticeServerNewQuestion = (roomId: string, round: number) => {
+  console.log("trigger");
   // Trigger server-side new-question event fan-out.
   const req: EventRequestBody = {
     type: ServerEvent.NewQuestion,
     roomId,
+    round,
   };
   return ky.post("/api/events", { json: req });
 };

@@ -15,6 +15,7 @@ const checkIsFirstPlayer = (players: Player[], playerId: string) => {
 type UseRoundCompletionHandlerParams = {
   currentQuestionHash: QuestionHashOnly | null;
   hasJoinedGame: boolean;
+  round: number;
   showAnswer: boolean;
   playerId: string;
   players: Player[];
@@ -25,6 +26,7 @@ type UseRoundCompletionHandlerParams = {
 export default function useRoundCompletionHandler({
   currentQuestionHash,
   hasJoinedGame,
+  round,
   showAnswer,
   playerId,
   players,
@@ -83,7 +85,7 @@ export default function useRoundCompletionHandler({
     lastTriggeredNewQuestionKeyRef.current = roundKey;
 
     // Notify server to advance to next question, which will broadcast new round data.
-    noticeServerNewQuestion(roomId)
+    noticeServerNewQuestion(roomId, round)
       .catch(() => {
         // Allow retry on failure by clearing dedupe key.
         lastTriggeredNewQuestionKeyRef.current = null;
@@ -96,6 +98,7 @@ export default function useRoundCompletionHandler({
   }, [
     currentQuestionHash?.hash,
     hasJoinedGame,
+    round,
     showAnswer,
     playerId,
     players,

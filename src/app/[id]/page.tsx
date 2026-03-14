@@ -51,8 +51,9 @@ export default function GamePage() {
   const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
   const questionList = useQuestionStore((s) => s.questionList);
   const showAnswer = useShowAnswerStore((s) => s.showAnswer);
-  const { setGameReady } = useGameActions();
+  const { setGameReady, setRound } = useGameActions();
   const timer = useGameStore((s) => s.timer);
+  const round = useGameStore((s) => s.round);
   const { players } = useRoomPlayers(channel);
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const [joinedQuestionHash, setJoinedQuestionHash] = useState<string | null>(
@@ -119,6 +120,7 @@ export default function GamePage() {
   useRoundCompletionHandler({
     currentQuestionHash,
     hasJoinedGame,
+    round,
     showAnswer,
     playerId,
     players,
@@ -136,7 +138,7 @@ export default function GamePage() {
     return () => {
       setGameReady(false);
     };
-  }, [setGameReady]);
+  }, [setGameReady, setRound]);
 
   useEffect(() => {
     if (!isMobilePlayerListOpen) return;
@@ -155,14 +157,6 @@ export default function GamePage() {
     hasJoinedGame &&
     !!joinedQuestionHash &&
     currentQuestionHash?.hash === joinedQuestionHash;
-
-  const totalRounds = Math.max(questionList.length, 1);
-  const foundRoundIndex = currentQuestionHash?.hash
-    ? questionList.findIndex(
-        (question) => question.hash === currentQuestionHash.hash,
-      )
-    : 0;
-  const currentRound = foundRoundIndex >= 0 ? foundRoundIndex + 1 : 1;
 
   const questionDurationMs = (room?.questionDurationSeconds ?? 20) * 1000;
   const remainingMs = showAnswer ? 0 : (timer ?? questionDurationMs);
@@ -197,12 +191,14 @@ export default function GamePage() {
             <section className="flex items-center gap-2">
               <Trophy size={14} className="text-primary" />
               <div className="leading-tight">
-                <p className="text-[9px] font-semibold tracking-wide opacity-60">
-                  ROUND
-                </p>
-                <p className="text-sm font-bold">
-                  {currentRound} of {totalRounds}
-                </p>
+                {hasJoinedGame && (
+                  <>
+                    <p className="text-[9px] font-semibold tracking-wide opacity-60">
+                      ROUND
+                    </p>
+                    <p className="text-sm font-bold">{round}</p>
+                  </>
+                )}
               </div>
             </section>
 

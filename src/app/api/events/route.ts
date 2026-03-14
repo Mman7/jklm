@@ -5,14 +5,15 @@ import { QuestionHashOnly } from "@/src/types/question";
 import { getRandomQuestions } from "@/src/utils/question_utils";
 
 export interface EventRequestBody {
-  type: ServerEvent.NewQuestion;
+  type: ServerEvent;
   roomId: string;
   playerId?: string;
+  round?: number;
 }
 
 export async function POST(request: Request) {
   const body = (await request.json()) as EventRequestBody;
-  const { type, roomId } = body;
+  const { type, roomId, round } = body;
   console.log("Received event:", type, "for room:", roomId);
 
   if (type === ServerEvent.NewQuestion) {
@@ -23,7 +24,11 @@ export async function POST(request: Request) {
       return new Response("Room not found", { status: 404 });
     }
 
-    noticeRoomNewQuestion(roomId, questionHashList);
+    noticeRoomNewQuestion(
+      roomId,
+      questionHashList,
+      Math.max(1, round ?? 1) + 1,
+    );
   }
 
   return new Response("Event triggered", { status: 200 });

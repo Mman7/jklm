@@ -2,6 +2,7 @@ export interface SyncData {
   currentQuestionHash: QuestionHashOnly;
   timer: TimerData;
   isShowingAnswer: boolean;
+  round: number;
 }
 
 export interface TimerData {

@@ -58,3 +58,18 @@ html {
 button {
   @apply transition-all duration-300;
 }
+/* Animation: scale up and fade in */
+@keyframes scale-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-fade-in {
+  animation: scale-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}

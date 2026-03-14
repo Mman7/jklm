@@ -33,6 +33,8 @@ export default function useDataSyncManager() {
   const timerRef = useRef(timer);
   const questionRef = useRef(currentQuestionHash);
   const currentQuestionRef = useRef(currentQuestion);
+  const round = useGameStore((s) => s.round);
+  const roundRef = useRef(round);
   // If sync arrives before the full question object is loaded, cache end_time here
   // and apply it once matching question data is available.
   const pendingSyncedEndTimeRef = useRef<{
@@ -52,6 +54,10 @@ export default function useDataSyncManager() {
   useEffect(() => {
     questionRef.current = currentQuestionHash;
   }, [currentQuestionHash]);
+
+  useEffect(() => {
+    roundRef.current = round;
+  }, [round]);
 
   useEffect(() => {
     currentQuestionRef.current = currentQuestion;
@@ -76,6 +82,7 @@ export default function useDataSyncManager() {
       const currentQuestionHash = questionRef.current;
       const currentQuestion = currentQuestionRef.current;
       const currentTimer = timerRef.current;
+      const currentRound = roundRef.current ?? 1;
 
       // Only sync when we have a valid local round context.
       if (!currentQuestionHash || currentTimer === null) return;
@@ -95,6 +102,7 @@ export default function useDataSyncManager() {
           isExpired: currentTimer <= 0,
         },
         isShowingAnswer: showAnswerRef.current,
+        round: currentRound,
       };
 
       sendSyncData({
@@ -140,6 +148,10 @@ export default function useDataSyncManager() {
       if (dataMessage.senderId === playerId) return;
 
       const syncData = dataMessage.payload;
+      // Apply incoming round value to local store
+      if (typeof syncData.round === "number") {
+        useGameStore.setState({ round: syncData.round });
+      }
       const incomingHash = syncData.currentQuestionHash.hash;
       const localHash = questionRef.current?.hash;
       const isSameQuestion = localHash === incomingHash;
@@ -238,7 +250,7 @@ export default function useDataSyncManager() {
     // Periodic lightweight broadcast so late joiners drift less before manual sync.
     const intervalId = setInterval(() => {
       sendSync(BROADCAST_REQUESTER_ID);
-    }, 5000);
+    }, 3000);
 
     return () => {
       clearInterval(intervalId);

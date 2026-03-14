@@ -39,12 +39,14 @@ export async function alertPlayerCorrect(playerId: string, roomId: string) {
 export function noticeRoomNewQuestion(
   roomId: string,
   questionHash: QuestionHashOnly[],
+  round: number,
 ) {
   // Broadcast next question hash payload to all room subscribers.
   const channel = ably.channels.get(`room-${roomId}`);
   channel.publish("events", {
     text: ServerEvent.NewQuestion,
     questionHash,
+    round,
     timestamp: Date.now(),
   });
 }
