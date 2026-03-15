@@ -9,6 +9,7 @@ export default function useGameController() {
   const player = useRoomStore((s) => s.player);
   const updatePlayerStats = useRoomStore((s) => s.updatePlayerStats);
   const setLastChat = useRoomStore((s) => s.setLastChat);
+  const { incRound } = useGameActions();
 
   const clearPlayerStatus = () => {
     // Status reset happens only for an active local player.
@@ -30,6 +31,9 @@ export default function useGameController() {
     setLastChat({ message: "", senderId: "" });
     // Advance question index/state in the question store.
     goToNextQuestion();
+    // Increment the round in the game store.
+    //TODO fix when round 15 auto skip problem
+    incRound();
   };
 
   const showPicture = () => {

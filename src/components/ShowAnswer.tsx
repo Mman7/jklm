@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
-import useGameController from "../hooks/useGameController";
 import { useQuestionStore } from "../zustands/useQuestionStore";
 import { getAnswer } from "../library/client/client";
 
@@ -8,22 +7,8 @@ export default function ShowAnswer() {
   const showAnswer = useShowAnswerStore((s) => s.showAnswer);
   const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
   const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
-  const { handleGoToNextQuestion } = useGameController();
-
-  // Using refs to maintain stable references for function calls across re-renders
-  const goNextRef = useRef(handleGoToNextQuestion);
-  const setShowAnswerRef = useRef(setShowAnswer);
   const [answer, setAnswer] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Update refs whenever the function handles change to avoid stale closures
-  useEffect(() => {
-    goNextRef.current = handleGoToNextQuestion;
-  }, [handleGoToNextQuestion]);
-
-  useEffect(() => {
-    setShowAnswerRef.current = setShowAnswer;
-  }, [setShowAnswer]);
 
   useEffect(() => {
     if (showAnswer && !currentQuestionHash?.hash) {
@@ -59,18 +44,6 @@ export default function ShowAnswer() {
       isCancelled = true; // Cleanup flag on unmount
     };
   }, [currentQuestionHash?.hash, showAnswer]);
-
-  // Auto-hide answer after 5 seconds and trigger next question
-  useEffect(() => {
-    if (!showAnswer) return;
-
-    const timer = setTimeout(() => {
-      setShowAnswerRef.current(false); // Set show answer to false via stable ref
-      goNextRef.current(); // Call next function from stable ref
-    }, 5000); // Hide answer after 5 seconds
-
-    return () => clearTimeout(timer); // Cleanup timer on unmount
-  }, [showAnswer]);
 
   return (
     <div

@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { noticeServerNewQuestion } from "../library/client/client";
 import { Player } from "../types/player";
 import { QuestionHashOnly } from "../types/question";
+import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
+import useGameController from "./useGameController";
 
 const checkIsFirstPlayer = (players: Player[], playerId: string) => {
   // Deterministic host selection based on the lowest lexical playerId.
@@ -33,76 +35,102 @@ export default function useRoundCompletionHandler({
   questionList,
   roomId,
 }: UseRoundCompletionHandlerParams) {
+  const setShowAnswer = useShowAnswerStore((s) => s.setShowAnswer);
+  const { handleGoToNextQuestion } = useGameController();
   // Prevent duplicate in-flight new-question requests.
   const isRequestingNewQuestionRef = useRef(false);
   // Guard key so the same round-completion transition triggers once.
   const lastTriggeredNewQuestionKeyRef = useRef<string | null>(null);
-  // Keep last known question hash when state temporarily clears/changes.
-  const lastSeenQuestionHashRef = useRef<string | null>(null);
-  // Track showAnswer transition edge (true -> false).
-  const wasShowingAnswerRef = useRef(false);
+  const hasJoinedGameRef = useRef(hasJoinedGame);
+  const playersRef = useRef(players);
+  const roundRef = useRef(round);
+  const roomIdRef = useRef(roomId);
+  const handleGoToNextQuestionRef = useRef(handleGoToNextQuestion);
+  const setShowAnswerRef = useRef(setShowAnswer);
 
   useEffect(() => {
-    // Persist latest observed question hash for completion calculations.
-    if (currentQuestionHash?.hash) {
-      lastSeenQuestionHashRef.current = currentQuestionHash.hash;
-    }
-  }, [currentQuestionHash?.hash]);
+    hasJoinedGameRef.current = hasJoinedGame;
+  }, [hasJoinedGame]);
 
   useEffect(() => {
-    // Prefer current hash; fall back to last seen when current is unavailable.
-    const currentHash = currentQuestionHash?.hash;
-    const completedQuestionHash =
-      currentHash ?? lastSeenQuestionHashRef.current;
-    // Locate completed question inside current round list.
-    const completedIndex = questionList.findIndex(
-      (q) => q.hash === completedQuestionHash,
-    );
-    // "Round finished" means answer screen just closed on the last question.
-    const hasJustFinishedLastQuestion =
-      wasShowingAnswerRef.current &&
-      !showAnswer &&
-      questionList.length > 0 &&
-      completedIndex === questionList.length - 1;
-    const isHost = checkIsFirstPlayer(players, playerId);
-    // Round key includes first question + completed question to dedupe retries.
-    const roundKey = `${questionList[0]?.hash ?? "none"}:${completedQuestionHash ?? "none"}`;
+    playersRef.current = players;
+  }, [players]);
 
-    // Only the host triggers new question generation to avoid conflicts.
+  useEffect(() => {
+    roundRef.current = round;
+  }, [round]);
+
+  useEffect(() => {
+    roomIdRef.current = roomId;
+  }, [roomId]);
+
+  useEffect(() => {
+    handleGoToNextQuestionRef.current = handleGoToNextQuestion;
+  }, [handleGoToNextQuestion]);
+
+  useEffect(() => {
+    setShowAnswerRef.current = setShowAnswer;
+  }, [setShowAnswer]);
+
+  useEffect(() => {
     if (
-      !hasJoinedGame ||
-      !hasJustFinishedLastQuestion ||
-      !isHost ||
-      isRequestingNewQuestionRef.current ||
-      lastTriggeredNewQuestionKeyRef.current === roundKey
+      !showAnswer ||
+      !currentQuestionHash?.hash ||
+      questionList.length === 0
     ) {
-      wasShowingAnswerRef.current = showAnswer;
       return;
     }
 
-    // Host triggers next-round generation exactly once for this round key.
-    isRequestingNewQuestionRef.current = true;
-    lastTriggeredNewQuestionKeyRef.current = roundKey;
+    const currentIndex = questionList.findIndex(
+      (question) => question.hash === currentQuestionHash.hash,
+    );
 
-    // Notify server to advance to next question, which will broadcast new round data.
-    noticeServerNewQuestion(roomId, round)
-      .catch(() => {
-        // Allow retry on failure by clearing dedupe key.
-        lastTriggeredNewQuestionKeyRef.current = null;
-      })
-      .finally(() => {
-        isRequestingNewQuestionRef.current = false;
-      });
+    if (currentIndex === -1) {
+      return;
+    }
 
-    wasShowingAnswerRef.current = showAnswer;
-  }, [
-    currentQuestionHash?.hash,
-    hasJoinedGame,
-    round,
-    showAnswer,
-    playerId,
-    players,
-    questionList,
-    roomId,
-  ]);
+    const isLastLoadedQuestion = currentIndex === questionList.length - 1;
+    const roundKey = `${questionList[0]?.hash ?? "none"}:${currentQuestionHash.hash}`;
+
+    const transitionTimerId = setTimeout(() => {
+      if (!hasJoinedGameRef.current) {
+        return;
+      }
+
+      if (!isLastLoadedQuestion) {
+        setShowAnswerRef.current(false);
+        handleGoToNextQuestionRef.current();
+        return;
+      }
+
+      const isHost = checkIsFirstPlayer(playersRef.current, playerId);
+
+      // Only the host triggers new question generation to avoid conflicts.
+      if (
+        !isHost ||
+        isRequestingNewQuestionRef.current ||
+        lastTriggeredNewQuestionKeyRef.current === roundKey
+      ) {
+        return;
+      }
+
+      // Host triggers next-round generation exactly once for this round key.
+      isRequestingNewQuestionRef.current = true;
+      lastTriggeredNewQuestionKeyRef.current = roundKey;
+
+      // Notify server to advance to next question, which will broadcast new round data.
+      noticeServerNewQuestion(roomIdRef.current, roundRef.current)
+        .catch(() => {
+          // Allow retry on failure by clearing dedupe key.
+          lastTriggeredNewQuestionKeyRef.current = null;
+        })
+        .finally(() => {
+          isRequestingNewQuestionRef.current = false;
+        });
+    }, 5000);
+
+    return () => {
+      clearTimeout(transitionTimerId);
+    };
+  }, [currentQuestionHash?.hash, playerId, questionList, showAnswer]);
 }
