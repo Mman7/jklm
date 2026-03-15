@@ -32,7 +32,6 @@ export default function useGameController() {
     // Advance question index/state in the question store.
     goToNextQuestion();
     // Increment the round in the game store.
-    //TODO fix when round 15 auto skip problem
     incRound();
   };
 
