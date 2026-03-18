@@ -144,12 +144,16 @@ export function sendSyncData({
 }
 
 // send sync request to all players to fetch current question and timer
-export function sendSyncRequest(requesterId: string) {
+export function sendSyncRequest(
+  requesterId: string,
+  targetResponderId?: string,
+) {
   if (!channel) return;
   // Ask peers for their latest question/timer snapshot.
   channel.publish("sync", {
     type: "sync_request",
     requesterId,
+    targetResponderId,
   } satisfies SyncMessage);
 }
 

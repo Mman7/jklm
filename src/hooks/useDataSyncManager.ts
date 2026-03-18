@@ -14,6 +14,9 @@ import { useRoomStore } from "../zustands/useRoomStore";
 import useMounted from "./useMounted";
 import { useAuthStore } from "../zustands/useAuthStore";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
+import { Player } from "../types/player";
+import useSyncBroadcastLeader from "./useSyncBroadcastLeader";
+import usePageActivity from "./usePageActivity";
 
 const BROADCAST_REQUESTER_ID = "all";
 
@@ -47,6 +50,21 @@ export default function useDataSyncManager() {
   const hasAppliedIncomingSyncRef = useRef(false);
   const showAnswerRef = useRef(showAnswer);
 
+  //  Track page visibility so we can avoid sending/applying sync when page is in background.
+  const sendReqSyncRef = useRef<() => Promise<void>>(async () => {});
+
+  const isPageActiveRef = usePageActivity({
+    onBecameActive: () => {
+      void sendReqSyncRef.current();
+    },
+  });
+
+  const isBroadcastLeader = useSyncBroadcastLeader({
+    channel,
+    mounted,
+    playerId: playerId ?? "",
+  });
+
   useEffect(() => {
     timerRef.current = timer;
   }, [timer]);
@@ -78,6 +96,7 @@ export default function useDataSyncManager() {
     (requesterId: string) => {
       // Cannot publish sync without local identity.
       if (!playerId) return;
+      if (!isPageActiveRef.current) return;
 
       const currentQuestionHash = questionRef.current;
       const currentQuestion = currentQuestionRef.current;
@@ -115,21 +134,49 @@ export default function useDataSyncManager() {
     [playerId],
   );
 
-  const sendReqSync = useCallback(() => {
+  // why it need useCallback? because it's a dependency of useEffect,
+  // and we want to avoid unnecessary re-subscriptions to the sync channel when this function changes on every render.
+  // By using useCallback, we ensure that the function identity remains stable across renders unless its dependencies change.
+  const sendReqSync = useCallback(async () => {
     if (!playerId) return;
+    if (!isPageActiveRef.current) return;
     // Fresh request should accept one incoming targeted sync again.
     hasAppliedIncomingSyncRef.current = false;
     pendingSyncedEndTimeRef.current = null;
-    sendSyncRequest(playerId);
-  }, [playerId]);
+    if (!channel) {
+      sendSyncRequest(playerId);
+      return;
+    }
+
+    const members = await channel.presence.get();
+    const firstResponderId = members
+      .map((member) => (member.data as Partial<Player>)?.playerId)
+      .find(
+        (memberPlayerId) => !!memberPlayerId && memberPlayerId !== playerId,
+      );
+
+    sendSyncRequest(playerId, firstResponderId);
+  }, [channel, playerId]);
+
+  // Keep latest sendReqSync in ref for use in page activity callback.
+  useEffect(() => {
+    sendReqSyncRef.current = sendReqSync;
+  }, [sendReqSync]);
 
   useEffect(() => {
     if (!mounted || !channel) return;
 
     const unsubscribe = subscribeToSync((syncMessage) => {
+      if (!isPageActiveRef.current) return;
+
       // Another player asks for direct sync; respond with current snapshot.
       if (syncMessage.type === "sync_request") {
         if (!playerId || syncMessage.requesterId === playerId) return;
+        if (
+          syncMessage.targetResponderId &&
+          syncMessage.targetResponderId !== playerId
+        )
+          return;
         sendSync(syncMessage.requesterId);
         return;
       }
@@ -246,6 +293,7 @@ export default function useDataSyncManager() {
 
   useEffect(() => {
     if (!mounted || !channel || !playerId) return;
+    if (!isBroadcastLeader) return;
 
     // Periodic lightweight broadcast so late joiners drift less before manual sync.
     const intervalId = setInterval(() => {
@@ -255,7 +303,7 @@ export default function useDataSyncManager() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [channel, mounted, playerId, sendSync]);
+  }, [channel, isBroadcastLeader, mounted, playerId, sendSync]);
 
   return { sendSync, sendReqSync };
 }

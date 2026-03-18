@@ -4,7 +4,6 @@ import ChallengeDisplayer from "@/src/components/game/ChallengeDisplayer";
 import GameJoinStatus from "@/src/components/game/GameJoinStatus";
 import PlayerListChat from "@/src/components/game/PlayerListChat";
 import PlayerInput from "@/src/components/PlayerInput";
-import Timer from "@/src/components/Timer";
 import Correct from "@/src/components/game/correct";
 import { useLastChat } from "@/src/hooks/useLastChat";
 import useDataSyncManager from "@/src/hooks/useDataSyncManager";
@@ -13,6 +12,7 @@ import useJoinSync from "@/src/hooks/useJoinSync";
 import useMounted from "@/src/hooks/useMounted";
 import usePlayerInputAutoFocus from "@/src/hooks/usePlayerInputAutoFocus";
 import useRoomEvent from "@/src/hooks/useRoomEvent";
+import useRoundTimerEffects from "@/src/hooks/useRoundTimerEffects";
 import useRoundCompletionHandler from "@/src/hooks/useRoundCompletionHandler";
 import usePlayerStatsUpdater from "@/src/hooks/usePlayerStats";
 import useUserValid from "@/src/hooks/useUserValid";
@@ -78,7 +78,7 @@ export default function GamePage() {
     setShowCorrectAnimation(false);
   }, [currentQuestionHash?.hash]);
 
-  Timer();
+  useRoundTimerEffects();
 
   // Show correct animation when player answers correctly
   useEffect(() => {
