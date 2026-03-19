@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const dataDir = path.join(process.cwd(), "data");
+const dataDir = path.join(process.cwd(), "public", "data");
 const questionsDir = path.join(dataDir, "popsauces");
 const outputPath = path.join(dataDir, "questions_paths.json");
 

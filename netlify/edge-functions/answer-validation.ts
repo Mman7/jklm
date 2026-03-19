@@ -1,4 +1,4 @@
-import rawAnswerMap from "../../data/answers_pairs.json" with { type: "json" };
+import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
 // Inline a lightweight copy of the shared AnswerComparator to avoid
 // cross-project imports that the edge bundler (Deno) struggles to resolve.
 function cleanToken(token: string): string {

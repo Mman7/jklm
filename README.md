@@ -16,7 +16,7 @@ Players can host a room, join with a code, answer timed questions, and race for 
 - Timed question rounds with score tracking
 - Room settings for target score and question duration
 - Server-side answer validation with Netlify Edge + API fallback
-- Private question dataset under `data/popsauces`
+- Question dataset under `public/data/popsauces`
 
 ## Tech stack
 
@@ -63,7 +63,7 @@ Open `http://localhost:3000`.
 - `npm run build`: Build production app (runs `prebuild` first)
 - `npm run start`: Start production server
 - `npm run lint`: Run ESLint
-- `npm run prebuild`: Generate `data/questions_paths.json` from dataset files
+- `npm run prebuild`: Generate `public/data/questions_paths.json` from dataset files
 
 ## How data and realtime work
 

@@ -9,7 +9,7 @@ import type {
 import { sampleSize } from "lodash-es";
 
 // Static data files generated during prebuild.
-const dataDir = path.join(process.cwd(), "data");
+const dataDir = path.join(process.cwd(), "public");
 const questionsDir = path.join(dataDir, "popsauces");
 const answersPath = path.join(dataDir, "answers_pairs.json");
 const indexPath = path.join(dataDir, "questions_paths.json");
@@ -29,7 +29,7 @@ function loadQuestionPathMap(): Record<string, string> {
     return JSON.parse(indexFile) as Record<string, string>;
   } catch {
     throw new Error(
-      "[question_utils] Missing data/questions_paths.json. Run the prebuild script before starting the app.",
+      "[question_utils] Missing public/data/questions_paths.json. Run the prebuild script before starting the app.",
     );
   }
 }
