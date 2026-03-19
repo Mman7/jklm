@@ -1,0 +1,13 @@
+{
+  "answer": "Apocalypse Now",
+  "submitter": "V",
+  "details": "",
+  "challenge": {
+    "end_time": 1739831431200,
+    "image": null,
+    "prompt": "What movie is this quote taken from?",
+    "text": "I love the smell of napalm in the morning.",
+    "hash": "0cb41d0155c6ae7dc861da0f09348ab7fcab0ac1"
+  },
+  "tags": ["Easy"]
+}
