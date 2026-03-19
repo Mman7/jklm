@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useQuestionStore } from "../zustands/useQuestionStore";
-import useTimer from "./useTimer";
+import useTimer from "../hooks/useTimer";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 import { useGameStore } from "../zustands/useGameStore";
 import { useLoadingStore } from "../zustands/useLoadingStore";
 
-export default function useRoundTimerEffects() {
+export default function Timer() {
   const currentQuestion = useQuestionStore((s) => s.currentQuestion);
   const currentQuestionHash = useQuestionStore((s) => s.currentQuestionHash);
   const showAnswer = useShowAnswerStore((s) => s.showAnswer);

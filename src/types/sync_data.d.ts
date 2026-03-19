@@ -13,7 +13,6 @@ export interface TimerData {
 export interface SyncRequestMessage {
   type: "sync_request";
   requesterId: string;
-  targetResponderId?: string;
 }
 
 export interface SyncDataMessage {

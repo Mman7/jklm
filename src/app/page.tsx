@@ -25,7 +25,6 @@ export default function Home() {
     if (channel) location.reload();
   }, [channel]);
 
-
   const handleHostRoom = async () => {
     // Name/profile must exist before creating a room.
     if (!isUserValid) {
