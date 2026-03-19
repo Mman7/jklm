@@ -1,4 +1,5 @@
 import { getQuestions } from "@/src/utils/question_utils";
+import type { QuestionPublic } from "@/src/types/question";
 
 type BatchQuestionRequest = {
   hashes: string[];
@@ -31,7 +32,10 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const questions = await getQuestions(hashes, questionDurationSeconds);
+    const questions: QuestionPublic[] = await getQuestions(
+      hashes,
+      questionDurationSeconds,
+    );
 
     return new Response(JSON.stringify(questions), {
       headers: { "Content-Type": "application/json" },

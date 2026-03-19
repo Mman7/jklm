@@ -8,7 +8,7 @@ import useQuestionStore, {
 import { useRoomStore } from "@/src/zustands/useRoomStore";
 import { useEffect, useMemo } from "react";
 import { getQuestions } from "@/src/library/client/client";
-import { Question } from "@/src/types/question";
+import { QuestionPublic } from "@/src/types/question";
 import SvgBase64Image from "./SvgBase64Image";
 import Base64Image from "./Base64Image";
 
@@ -32,7 +32,7 @@ export default function ChallengeDisplayer() {
   const questionDurationSeconds =
     room?.questionDurationSeconds ?? DEFAULT_QUESTION_DURATION_SECONDS;
 
-  const { data, isLoading, error } = useSWR<Question[]>(
+  const { data, isLoading, error } = useSWR<QuestionPublic[]>(
     roundHashes.length > 0
       ? {
           type: "round-questions",

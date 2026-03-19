@@ -6,6 +6,8 @@ export interface Question {
   tags: Tag[];
 }
 
+export type QuestionPublic = Omit<Question, "answer">;
+
 export interface QuestionHashOnly {
   hash: string;
 }

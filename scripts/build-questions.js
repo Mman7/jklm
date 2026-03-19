@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const dataDir = path.join(process.cwd(), "public/data");
+const dataDir = path.join(process.cwd(), "data");
 const questionsDir = path.join(dataDir, "popsauces");
 const outputPath = path.join(dataDir, "questions_paths.json");
 
@@ -13,7 +13,7 @@ const questionPaths = {};
 
 for (const fileName of files) {
   const hash = path.parse(fileName).name;
-  questionPaths[hash] = `popsauces/${fileName}`;
+  questionPaths[hash] = fileName;
 }
 
 fs.writeFileSync(outputPath, JSON.stringify(questionPaths));
