@@ -1,12 +1,18 @@
 import { readFileSync } from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
-import type { Question, QuestionHashOnly } from "../types/question";
-import ky from "ky";
+import type {
+  Question,
+  QuestionHashOnly,
+  QuestionPublic,
+} from "../types/question";
 import { sampleSize } from "lodash-es";
 
 // Static data files generated during prebuild.
-const answersPath = path.join(process.cwd(), "public/data/answers_pairs.json");
-const indexPath = path.join(process.cwd(), "public/data/questions_paths.json");
+const dataDir = path.join(process.cwd(), "data");
+const questionsDir = path.join(dataDir, "popsauces");
+const answersPath = path.join(dataDir, "answers_pairs.json");
+const indexPath = path.join(dataDir, "questions_paths.json");
 
 const answersFile = readFileSync(answersPath, "utf-8");
 const parseFile = JSON.parse(answersFile);
@@ -23,7 +29,7 @@ function loadQuestionPathMap(): Record<string, string> {
     return JSON.parse(indexFile) as Record<string, string>;
   } catch {
     throw new Error(
-      "[question_utils] Missing public/data/questions_paths.json. Run `npm run prebuild` before starting the app.",
+      "[question_utils] Missing data/questions_paths.json. Run the prebuild script before starting the app.",
     );
   }
 }
@@ -45,7 +51,7 @@ function generateCountTime(questionDurationSeconds: number = 20) {
 export async function getQuestions(
   questionHashes: string[],
   questionDurationSeconds: number = 20,
-): Promise<Question[]> {
+): Promise<QuestionPublic[]> {
   const uniqueHashes = [...new Set(questionHashes)];
 
   const questions = await Promise.all(
@@ -55,7 +61,7 @@ export async function getQuestions(
   return questions
     .filter((question): question is Question => question !== null)
     .map((question) => ({
-      ...question,
+      ...toPublicQuestion(question),
       challenge: {
         ...question.challenge,
         end_time: generateCountTime(questionDurationSeconds),
@@ -63,10 +69,12 @@ export async function getQuestions(
     }));
 }
 
-// function removeAnswerFromQuestion(question: Question): Question {
-//   question.answer = "";
-//   return question;
-// }
+// Expose only non-answer fields for public use.
+function toPublicQuestion(question: Question): QuestionPublic {
+  // Omit the "answer" field to prevent accidental exposure.
+  const { answer, ...rest } = question;
+  return rest as QuestionPublic;
+}
 
 async function readQuestionByHash(hash: string): Promise<Question | null> {
   // Return cached object when available.
@@ -82,21 +90,9 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 
   try {
-    // Fetch from public data endpoint to avoid bundling files into serverless functions
-    const baseUrl = getBaseUrl();
-    const response = await ky.get(`${baseUrl}/data/${relativePath}`, {
-      cache: "no-store",
-      throwHttpErrors: false,
-    });
-
-    if (!response.ok) {
-      console.error(
-        `Failed to fetch question ${hash}: ${response.status} ${response.statusText}`,
-      );
-      return null;
-    }
-
-    const parsedQuestion = (await response.json()) as Question;
+    const questionPath = path.join(questionsDir, relativePath);
+    const questionFile = await readFile(questionPath, "utf-8");
+    const parsedQuestion = JSON.parse(questionFile) as Question;
     questionCache.set(hash, parsedQuestion);
     return parsedQuestion;
   } catch (error) {
@@ -105,24 +101,9 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 }
 
-function getBaseUrl(): string {
-  // For Netlify deployments, use URL env variable
-  if (process.env.URL) {
-    return process.env.URL;
-  }
-
-  // For other deployments or custom domains
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
-  }
-
-  // Local development fallback
-  return `http://localhost:${process.env.PORT || "3000"}`;
-}
-
 export async function findAnswer(hash: string): Promise<string> {
   // Constant-time lookup from precomputed hash -> answer map.
-  return parseFile[hash];
+  return parseFile[hash] ?? "";
 }
 // Use shared comparator implementation
 export { AnswerComparator } from "./answer_comparator";

@@ -1,7 +1,7 @@
 import { EventRequestBody } from "@/src/app/api/events/route";
 import { CreateRoomRequest } from "@/src/app/api/room/route";
 import { ServerEvent } from "@/src/types/enum/server_events";
-import { Question, QuestionHashOnly } from "@/src/types/question";
+import { QuestionHashOnly, QuestionPublic } from "@/src/types/question";
 import { Room } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
 import ky from "ky";
@@ -69,7 +69,7 @@ export const noticeServerNewQuestion = (roomId: string, round: number) => {
 export const getQuestions = (
   questions: QuestionHashOnly[],
   questionDurationSeconds?: number,
-): Promise<Question[]> => {
+): Promise<QuestionPublic[]> => {
   // Resolve all question payloads in smaller chunks to avoid oversized
   // serverless responses on providers like Netlify.
   const BATCH_SIZE = 5;
@@ -91,14 +91,15 @@ export const getQuestions = (
               questionDurationSeconds,
             },
           })
-          .json<Question[]>(),
+          .json<QuestionPublic[]>(),
       ),
     );
 
     const merged = chunkResults.flat();
     // Filter out any failed question loads (e.g. invalid hash) and return.
     return merged.filter(
-      (question: Question | null): question is Question => question !== null,
+      (question: QuestionPublic | null): question is QuestionPublic =>
+        question !== null,
     );
   })();
 };

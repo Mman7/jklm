@@ -1,4 +1,4 @@
-import rawAnswerMap from "../../public/data/answers_pairs.json" with { type: "json" };
+import rawAnswerMap from "../../data/answers_pairs.json" with { type: "json" };
 // Inline a lightweight copy of the shared AnswerComparator to avoid
 // cross-project imports that the edge bundler (Deno) struggles to resolve.
 function cleanToken(token: string): string {
@@ -13,7 +13,10 @@ function cleanToken(token: string): string {
   return out;
 }
 
-function AnswerComparator(answerInStore: string, submitAnswer: string): boolean {
+function AnswerComparator(
+  answerInStore: string,
+  submitAnswer: string,
+): boolean {
   if (!submitAnswer || !submitAnswer.trim()) return false;
 
   const normalizedStore = answerInStore.trim().toLowerCase();
@@ -21,7 +24,9 @@ function AnswerComparator(answerInStore: string, submitAnswer: string): boolean 
   if (normalizedStore === normalizedSubmit) return true;
 
   const answerParts = normalizedStore.split(" ");
-  const cleanedAnswerParts = answerParts.map(cleanToken).filter((w) => w.length > 0);
+  const cleanedAnswerParts = answerParts
+    .map(cleanToken)
+    .filter((w) => w.length > 0);
 
   const submitParts = normalizedSubmit.split(" ");
   let answerIndex = 0;
@@ -54,7 +59,10 @@ const normalize = (value: string): string =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
 const answerMap: AnswerMap = Object.fromEntries(
-  Object.entries(rawAnswerMap as AnswerMap).map(([k, v]) => [k, normalize(String(v))]),
+  Object.entries(rawAnswerMap as AnswerMap).map(([k, v]) => [
+    k,
+    normalize(String(v)),
+  ]),
 );
 
 export default async function answerValidation(

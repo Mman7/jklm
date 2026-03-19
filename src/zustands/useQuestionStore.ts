@@ -1,16 +1,16 @@
 import { create } from "zustand";
-import { Question, QuestionHashOnly } from "../types/question";
+import { QuestionHashOnly, QuestionPublic } from "../types/question";
 
 interface QuestionActions {
   setQuestionList: (questions: QuestionHashOnly[]) => void;
-  setCurrentQuestion: (question: Question | null) => void;
+  setCurrentQuestion: (question: QuestionPublic | null) => void;
   setCurrentQuestionHash: (question: QuestionHashOnly | null) => void;
   goToNextQuestion: () => void;
 }
 
 interface QuestionStore {
   questionList: QuestionHashOnly[];
-  currentQuestion: Question | null;
+  currentQuestion: QuestionPublic | null;
   currentQuestionHash: QuestionHashOnly | null;
   currentIndexInList: number;
   actions: QuestionActions;
@@ -24,7 +24,7 @@ export const useQuestionStore = create<QuestionStore>((set) => ({
   actions: {
     setQuestionList: (questions: QuestionHashOnly[]) =>
       set({ questionList: questions }),
-    setCurrentQuestion: (question: Question | null) =>
+    setCurrentQuestion: (question: QuestionPublic | null) =>
       set({ currentQuestion: question }),
     setCurrentQuestionHash: (question: QuestionHashOnly | null) =>
       set({ currentQuestionHash: question }),
