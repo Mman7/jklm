@@ -3,65 +3,18 @@ import type {
   QuestionHashOnly,
   QuestionPublic,
 } from "../types/question";
+import answersMapJson from "@/public/data/answers_pairs.json";
+import questionPathMapJson from "@/public/data/questions_paths.json";
 import ky from "ky";
 import { sampleSize } from "lodash-es";
 
 // Cache parsed questions to avoid refetching/JSON parsing for repeated rounds.
 const questionCache = new Map<string, Question>();
+const answersMap: Record<string, string> = answersMapJson;
+const questionPathMap: Record<string, string> = questionPathMapJson;
 
-let answersMapPromise: Promise<Record<string, string>> | null = null;
-let questionPathMapPromise: Promise<Record<string, string>> | null = null;
-
-async function getQuestionPathMap(): Promise<Record<string, string>> {
-  if (!questionPathMapPromise) {
-    questionPathMapPromise = fetchPublicJson<Record<string, string>>(
-      "questions_paths.json",
-      "[question_utils] Missing questions_paths.json. Run the prebuild script before starting the app.",
-    ).catch((error) => {
-      questionPathMapPromise = null;
-      throw error;
-    });
-  }
-
-  return questionPathMapPromise;
-}
-
-async function getAnswersMap(): Promise<Record<string, string>> {
-  if (!answersMapPromise) {
-    answersMapPromise = fetchPublicJson<Record<string, string>>(
-      "answers_pairs.json",
-      "[question_utils] Missing answers_pairs.json. Run the prebuild script before starting the app.",
-    ).catch((error) => {
-      answersMapPromise = null;
-      throw error;
-    });
-  }
-
-  return answersMapPromise;
-}
-
-async function fetchPublicJson<T>(
-  relativePath: string,
-  errorMessage: string,
-): Promise<T> {
-  const baseUrl = getBaseUrl();
-  const response = await ky.get(`${baseUrl}/data/${relativePath}`, {
-    cache: "no-store",
-    throwHttpErrors: false,
-  });
-
-  if (!response.ok) {
-    throw new Error(errorMessage);
-  }
-
-  return (await response.json()) as T;
-}
-
-export async function getRandomQuestions(
-  count: number = 15,
-): Promise<QuestionHashOnly[]> {
+export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
   // Randomly pick unique hashes from the index.
-  const questionPathMap = await getQuestionPathMap();
   const hashes: string[] = Object.keys(questionPathMap);
   if (hashes.length === 0 || count <= 0) return [];
 
@@ -110,7 +63,6 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 
   // Resolve relative data file path from hash index.
-  const questionPathMap = await getQuestionPathMap();
   const relativePath = questionPathMap[hash];
   if (!relativePath) {
     return null;
@@ -152,9 +104,8 @@ function getBaseUrl(): string {
   return `http://localhost:${process.env.PORT || "3000"}`;
 }
 
-export async function findAnswer(hash: string): Promise<string> {
+export function findAnswer(hash: string): string {
   // Constant-time lookup from precomputed hash -> answer map.
-  const answersMap = await getAnswersMap();
   return answersMap[hash] ?? "";
 }
 // Use shared comparator implementation

@@ -44,7 +44,7 @@ const normalizeQuestionList = async (
   while (mergedList.length < ROUND_QUESTION_COUNT && attempts < 10) {
     attempts += 1;
 
-    const candidates = await getRandomQuestions(ROUND_QUESTION_COUNT);
+    const candidates = getRandomQuestions(ROUND_QUESTION_COUNT);
     for (const candidate of candidates) {
       if (seenHashes.has(candidate.hash)) continue;
       seenHashes.add(candidate.hash);
