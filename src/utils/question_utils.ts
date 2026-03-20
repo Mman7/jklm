@@ -1,5 +1,3 @@
-import { readFileSync } from "fs";
-import path from "path";
 import type {
   Question,
   QuestionHashOnly,
@@ -8,33 +6,62 @@ import type {
 import ky from "ky";
 import { sampleSize } from "lodash-es";
 
-// Static data files generated during prebuild.
-const dataDir = path.join(process.cwd(), "public", "data");
-const answersPath = path.join(dataDir, "answers_pairs.json");
-const indexPath = path.join(dataDir, "questions_paths.json");
-
-const answersFile = readFileSync(answersPath, "utf-8");
-const parseFile = JSON.parse(answersFile);
-
-// In-memory hash -> relative file path index for fast question lookups.
-const questionPathMap = loadQuestionPathMap();
-
 // Cache parsed questions to avoid refetching/JSON parsing for repeated rounds.
 const questionCache = new Map<string, Question>();
 
-function loadQuestionPathMap(): Record<string, string> {
-  try {
-    const indexFile = readFileSync(indexPath, "utf-8");
-    return JSON.parse(indexFile) as Record<string, string>;
-  } catch {
-    throw new Error(
+let answersMapPromise: Promise<Record<string, string>> | null = null;
+let questionPathMapPromise: Promise<Record<string, string>> | null = null;
+
+async function getQuestionPathMap(): Promise<Record<string, string>> {
+  if (!questionPathMapPromise) {
+    questionPathMapPromise = fetchPublicJson<Record<string, string>>(
+      "questions_paths.json",
       "[question_utils] Missing questions_paths.json. Run the prebuild script before starting the app.",
-    );
+    ).catch((error) => {
+      questionPathMapPromise = null;
+      throw error;
+    });
   }
+
+  return questionPathMapPromise;
 }
 
-export function getRandomQuestions(count: number = 15): QuestionHashOnly[] {
+async function getAnswersMap(): Promise<Record<string, string>> {
+  if (!answersMapPromise) {
+    answersMapPromise = fetchPublicJson<Record<string, string>>(
+      "answers_pairs.json",
+      "[question_utils] Missing answers_pairs.json. Run the prebuild script before starting the app.",
+    ).catch((error) => {
+      answersMapPromise = null;
+      throw error;
+    });
+  }
+
+  return answersMapPromise;
+}
+
+async function fetchPublicJson<T>(
+  relativePath: string,
+  errorMessage: string,
+): Promise<T> {
+  const baseUrl = getBaseUrl();
+  const response = await ky.get(`${baseUrl}/data/${relativePath}`, {
+    cache: "no-store",
+    throwHttpErrors: false,
+  });
+
+  if (!response.ok) {
+    throw new Error(errorMessage);
+  }
+
+  return (await response.json()) as T;
+}
+
+export async function getRandomQuestions(
+  count: number = 15,
+): Promise<QuestionHashOnly[]> {
   // Randomly pick unique hashes from the index.
+  const questionPathMap = await getQuestionPathMap();
   const hashes: string[] = Object.keys(questionPathMap);
   if (hashes.length === 0 || count <= 0) return [];
 
@@ -83,6 +110,7 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 
   // Resolve relative data file path from hash index.
+  const questionPathMap = await getQuestionPathMap();
   const relativePath = questionPathMap[hash];
   if (!relativePath) {
     return null;
@@ -126,7 +154,8 @@ function getBaseUrl(): string {
 
 export async function findAnswer(hash: string): Promise<string> {
   // Constant-time lookup from precomputed hash -> answer map.
-  return parseFile[hash] ?? "";
+  const answersMap = await getAnswersMap();
+  return answersMap[hash] ?? "";
 }
 // Use shared comparator implementation
 export { AnswerComparator } from "./answer_comparator";

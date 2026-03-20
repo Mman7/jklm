@@ -30,9 +30,9 @@ const parseIntInRange = (
   return integerValue;
 };
 
-const normalizeQuestionList = (
+const normalizeQuestionList = async (
   currentList: QuestionHashOnly[],
-): QuestionHashOnly[] => {
+): Promise<QuestionHashOnly[]> => {
   if (currentList.length >= ROUND_QUESTION_COUNT) {
     return currentList;
   }
@@ -44,7 +44,7 @@ const normalizeQuestionList = (
   while (mergedList.length < ROUND_QUESTION_COUNT && attempts < 10) {
     attempts += 1;
 
-    const candidates = getRandomQuestions(ROUND_QUESTION_COUNT);
+    const candidates = await getRandomQuestions(ROUND_QUESTION_COUNT);
     for (const candidate of candidates) {
       if (seenHashes.has(candidate.hash)) continue;
       seenHashes.add(candidate.hash);
@@ -67,7 +67,8 @@ export async function GET(request: Request, { params }: any) {
   if (roomData === null) return new Response("Room not found", { status: 404 });
 
   const existingQuestionList = roomData.questionList ?? [];
-  const normalizedQuestionList = normalizeQuestionList(existingQuestionList);
+  const normalizedQuestionList =
+    await normalizeQuestionList(existingQuestionList);
 
   if (normalizedQuestionList.length !== existingQuestionList.length) {
     const updatedRoom = await replaceRoomQuestionList(
