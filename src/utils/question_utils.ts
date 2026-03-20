@@ -1,16 +1,15 @@
 import { readFileSync } from "fs";
-import { readFile } from "fs/promises";
 import path from "path";
 import type {
   Question,
   QuestionHashOnly,
   QuestionPublic,
 } from "../types/question";
+import ky from "ky";
 import { sampleSize } from "lodash-es";
 
 // Static data files generated during prebuild.
 const dataDir = path.join(process.cwd(), "public", "data");
-const questionsDir = path.join(dataDir, "popsauces");
 const answersPath = path.join(dataDir, "answers_pairs.json");
 const indexPath = path.join(dataDir, "questions_paths.json");
 
@@ -90,15 +89,39 @@ async function readQuestionByHash(hash: string): Promise<Question | null> {
   }
 
   try {
-    const questionPath = path.join(questionsDir, relativePath);
-    const questionFile = await readFile(questionPath, "utf-8");
-    const parsedQuestion = JSON.parse(questionFile) as Question;
+    // Fetch from the public data endpoint so build tools do not bundle the full question dataset.
+    const baseUrl = getBaseUrl();
+    const response = await ky.get(`${baseUrl}/data/popsauces/${relativePath}`, {
+      cache: "no-store",
+      throwHttpErrors: false,
+    });
+
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch question ${hash}: ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
+    const parsedQuestion = (await response.json()) as Question;
     questionCache.set(hash, parsedQuestion);
     return parsedQuestion;
   } catch (error) {
     console.error(`Failed to read question file for hash ${hash}:`, error);
     return null;
   }
+}
+
+function getBaseUrl(): string {
+  if (process.env.URL) {
+    return process.env.URL;
+  }
+
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+
+  return `http://localhost:${process.env.PORT || "3000"}`;
 }
 
 export async function findAnswer(hash: string): Promise<string> {
