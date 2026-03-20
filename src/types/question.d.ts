@@ -6,10 +6,7 @@ export interface Question {
   tags: Tag[];
 }
 
-<<<<<<< HEAD
 // Expose only non-answer fields for public use.
-=======
->>>>>>> e5057de8b9c9f8878624de1501eedbec96a8bb9f
 export type QuestionPublic = Omit<Question, "answer">;
 
 export interface QuestionHashOnly {
