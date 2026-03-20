@@ -5,9 +5,9 @@ Realtime multiplayer trivia game built with Next.js, Ably, and Redis.
 Players can host a room, join with a code, answer timed questions, and race for points. Gameplay state is synchronized in realtime through Ably channels, while room state and scores are persisted in Redis.
 
 ## Showcase
+
 <img width="1920" height="965" alt="showcase_1" src="https://github.com/user-attachments/assets/4762ab97-b9be-431d-8b70-c5cd9fafa302" />
 <img width="1920" height="965" alt="showcase_2" src="https://github.com/user-attachments/assets/34b72eb5-d289-4c6b-b849-2a48e7b6fe8a" />
-
 
 ## Features
 
@@ -16,7 +16,7 @@ Players can host a room, join with a code, answer timed questions, and race for 
 - Timed question rounds with score tracking
 - Room settings for target score and question duration
 - Server-side answer validation with Netlify Edge + API fallback
-- Static question dataset under `public/data/popsauces`
+- Question dataset under `public/data/popsauces`
 
 ## Tech stack
 
@@ -41,16 +41,12 @@ Create a `.env` file in the project root:
 ```bash
 ABLY_API_KEY=your_ably_api_key
 DATABASE_PASSWORD=your_redis_password
-
-# Optional (used by question file fetch helpers)
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
 Notes:
 
 - `ABLY_API_KEY` is used server-side for token issuance and room event publishing.
 - `DATABASE_PASSWORD` is used by Redis client initialization in `src/library/server/database.ts`.
-- In Netlify deployments, `URL` is provided automatically and used as base URL fallback.
 
 ## Setup
 
@@ -115,7 +111,7 @@ src/
 	library/client/      # Client-side Ably/API helpers
 	library/server/      # Server-side Ably/Redis/validation logic
 	zustands/            # Zustand stores
-public/data/           # Question + answer datasets
+data/                  # Private question + answer datasets
 netlify/edge-functions/# Netlify edge handlers
 ```
 

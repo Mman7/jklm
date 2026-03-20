@@ -4,7 +4,15 @@ import { Player } from "../types/player";
 import { QuestionHashOnly } from "../types/question";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 import useGameController from "./useGameController";
-import { isLeaderPlayerId } from "../utils/leader_election";
+
+const checkIsFirstPlayer = (players: Player[], playerId: string) => {
+  // Deterministic host selection based on the lowest lexical playerId.
+  if (players.length === 0) return false;
+  const sortedPlayers = [...players].sort((a, b) =>
+    a.playerId.localeCompare(b.playerId),
+  );
+  return sortedPlayers[0].playerId === playerId;
+};
 
 type UseRoundCompletionHandlerParams = {
   currentQuestionHash: QuestionHashOnly | null;
@@ -95,10 +103,7 @@ export default function useRoundCompletionHandler({
         return;
       }
 
-      const isHost = isLeaderPlayerId(
-        playerId,
-        playersRef.current.map((player) => player.playerId),
-      );
+      const isHost = checkIsFirstPlayer(playersRef.current, playerId);
 
       // Only the host triggers new question generation to avoid conflicts.
       if (
