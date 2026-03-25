@@ -10,3 +10,9 @@ export interface Room {
   questionList?: QuestionHashOnly[];
   scores?: Record<string, number>;
 }
+
+export interface RoomSettings {
+  playerId: string;
+  targetScore: number;
+  questionDurationSeconds: number;
+}

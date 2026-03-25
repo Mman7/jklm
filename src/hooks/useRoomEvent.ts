@@ -14,6 +14,7 @@ import {
 import { QuestionHashOnly } from "../types/question";
 import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 import { useParams, useRouter } from "next/navigation";
+import { EventType } from "../types/events";
 
 export default function useRoomEvent() {
   const router = useRouter();
@@ -71,22 +72,22 @@ export default function useRoomEvent() {
   }, [currentQuestionHash?.hash, updatePlayerStats]);
 
   useEffect(() => {
+    const isFetching = players.some(
+      (roomPlayer) => roomPlayer.fetchedStatus === FetchedStatus.fetching,
+    );
+
     // Mark that this question lifecycle has started fetching.
-    if (
-      players.some(
-        (roomPlayer) => roomPlayer.fetchedStatus === FetchedStatus.fetching,
-      )
-    ) {
+    if (isFetching) {
       seenFetchingForQuestionRef.current = true;
     }
 
     // Mark that this question has entered an active answering phase and is not
     // still in the previous question's "all correct" carry-over state.
-    if (
-      players.some(
-        (roomPlayer) => roomPlayer.playerStatus !== PlayerStatus.answer_correct,
-      )
-    ) {
+    const hasNonCorrect = players.some(
+      (roomPlayer) => roomPlayer.playerStatus !== PlayerStatus.answer_correct,
+    );
+
+    if (hasNonCorrect) {
       seenNonCorrectForQuestionRef.current = true;
     }
   }, [players]);
@@ -94,10 +95,9 @@ export default function useRoomEvent() {
   useEffect(() => {
     if (!channel) return;
 
-    const unsubscribe = subscribeToEvents((event) => {
-      console.log(event);
+    const unsubscribe = subscribeToEvents((event: EventType) => {
       // Handle room-level events and update local stores accordingly.
-      switch (event.text) {
+      switch (event.type) {
         case ServerEvent.PlayerAnsweredCorrectly:
           // Only the targeted player's status should be marked correct locally.
           if (event.playerId !== playerRef.current?.playerId) return;
@@ -111,21 +111,17 @@ export default function useRoomEvent() {
 
         case ServerEvent.NewQuestion:
           {
-            // Server sends next round list; use first item as active question.
-            const { questionHash: nextQuestionList, round } = event as {
-              questionHash?: QuestionHashOnly[];
-              round?: number;
-            };
-            if (!nextQuestionList || nextQuestionList.length === 0) break;
+            // Server now always sends a list of question hashes (`questionHashs`).
+            const incomingQuestionList =
+              event.questionHashs as QuestionHashOnly[];
+            const firstQuestionHash = incomingQuestionList[0] ?? null;
+            if (!firstQuestionHash) break;
 
-            setQuestionList(nextQuestionList);
+            setQuestionList(incomingQuestionList);
             setCurrentQuestion(null);
-            setCurrentQuestionHash(nextQuestionList[0] || null);
-            if (typeof round === "number") {
-              setRound(round);
-            } else {
-              incRound();
-            }
+            setCurrentQuestionHash(firstQuestionHash);
+            // `round` is now required on the event; use server-provided value.
+            setRound(event.round);
             setShowAnswer(false);
 
             if (!playerRef.current) break;
@@ -144,7 +140,7 @@ export default function useRoomEvent() {
         case ServerEvent.PlayerWinner:
           {
             // Navigate to results screen with winner encoded in query params.
-            const winnerPlayerId = (event as { playerId?: string }).playerId;
+            const winnerPlayerId = event.playerId;
             if (!winnerPlayerId || !roomId) break;
 
             setShowAnswer(false);

@@ -123,6 +123,7 @@ export default function PlayerInput() {
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-2">
           <div className="bg-primary/10 flex h-12 w-full items-center gap-2 rounded-full px-4">
             <input
+              id="player-input"
               value={inputValue}
               onChange={(e) => onChanged(e)}
               onKeyDown={handleKeyDown}

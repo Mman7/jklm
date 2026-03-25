@@ -1,5 +1,6 @@
 import { createTokenRequest } from "@/src/app/api/ably-token/route";
 import { ServerEvent } from "@/src/types/enum/server_events";
+import { EventType } from "@/src/types/events";
 import { QuestionHashOnly } from "@/src/types/question";
 import Ably, { TokenRequest } from "ably";
 import dotenv from "dotenv";
@@ -29,34 +30,38 @@ export async function createAblyTokenRequest({ playerId }: createTokenRequest) {
 export async function alertPlayerCorrect(playerId: string, roomId: string) {
   // Publish room-scoped gameplay event.
   const channel = ably.channels.get(`room-${roomId}`);
-  await channel.publish("events", {
-    text: ServerEvent.PlayerAnsweredCorrectly,
+  const payload: EventType = {
+    type: ServerEvent.PlayerAnsweredCorrectly,
     playerId,
     timestamp: Date.now(),
-  });
+  };
+  await channel.publish("events", payload);
 }
 
 export function noticeRoomNewQuestion(
   roomId: string,
-  questionHash: QuestionHashOnly[],
+  questionHashs: QuestionHashOnly[],
   round: number,
 ) {
   // Broadcast next question hash payload to all room subscribers.
   const channel = ably.channels.get(`room-${roomId}`);
-  channel.publish("events", {
-    text: ServerEvent.NewQuestion,
-    questionHash,
+  const payload: EventType = {
+    type: ServerEvent.NewQuestion,
+    questionHashs,
     round,
     timestamp: Date.now(),
-  });
+  };
+  channel.publish("events", payload);
 }
 
 export const noticeRoomPlayerWinner = (roomId: string, playerId: string) => {
   // Announce winner for current round/session.
   const channel = ably.channels.get(`room-${roomId}`);
-  channel.publish("events", {
-    text: ServerEvent.PlayerWinner,
+  const payload: EventType = {
+    type: ServerEvent.PlayerWinner,
     playerId,
     timestamp: Date.now(),
-  });
+  };
+
+  channel.publish("events", payload);
 };

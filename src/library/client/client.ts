@@ -2,7 +2,7 @@ import { EventRequestBody } from "@/src/app/api/events/route";
 import { CreateRoomRequest } from "@/src/app/api/room/route";
 import { ServerEvent } from "@/src/types/enum/server_events";
 import { QuestionHashOnly, QuestionPublic } from "@/src/types/question";
-import { Room } from "@/src/types/room";
+import { Room, RoomSettings } from "@/src/types/room";
 import { generateUID } from "@/src/utils/uuid";
 import ky from "ky";
 import { chunk } from "lodash-es";
@@ -29,15 +29,7 @@ export const getRoom = (roomId: string): Promise<Room> => {
 
 export const updateRoomSettings = (
   roomId: string,
-  {
-    playerId,
-    targetScore,
-    questionDurationSeconds,
-  }: {
-    playerId: string;
-    targetScore: number;
-    questionDurationSeconds: number;
-  },
+  { playerId, targetScore, questionDurationSeconds }: RoomSettings,
 ): Promise<Room> => {
   return ky
     .patch(`/api/room/${roomId}`, {
@@ -56,7 +48,6 @@ export const getAllRooms = (): Promise<Room[]> => {
 };
 
 export const noticeServerNewQuestion = (roomId: string, round: number) => {
-  console.log("trigger");
   // Trigger server-side new-question event fan-out.
   const req: EventRequestBody = {
     type: ServerEvent.NewQuestion,

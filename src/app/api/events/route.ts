@@ -8,7 +8,7 @@ export interface EventRequestBody {
   type: ServerEvent;
   roomId: string;
   playerId?: string;
-  round?: number;
+  round: number;
 }
 
 export async function POST(request: Request) {
@@ -24,11 +24,7 @@ export async function POST(request: Request) {
       return new Response("Room not found", { status: 404 });
     }
 
-    noticeRoomNewQuestion(
-      roomId,
-      questionHashList,
-      Math.max(1, round ?? 1) + 1,
-    );
+    noticeRoomNewQuestion(roomId, questionHashList, Math.max(1, round) + 1);
   }
 
   return new Response("Event triggered", { status: 200 });

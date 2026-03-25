@@ -1,5 +1,6 @@
 import { Player } from "@/src/types/player";
 import { SyncData, SyncMessage } from "@/src/types/sync_data";
+import { EventType } from "@/src/types/events";
 import Ably from "ably";
 
 // Singleton realtime client/channel references for the active room session.
@@ -56,13 +57,7 @@ export function subscribeToMessages(
   };
 }
 
-export function subscribeToEvents(
-  onMessage: (msg: {
-    text: string;
-    timestamp: number;
-    playerId: string;
-  }) => void,
-) {
+export function subscribeToEvents(onMessage: (msg: EventType) => void) {
   if (!channel) return () => {};
 
   // Listen to gameplay events (new question, winner, etc.).
@@ -108,12 +103,7 @@ export async function ablyUpdatePlayerStats(playerProps: Player) {
   if (!channel) return;
   // Presence update is used as lightweight shared player state.
   await channel.presence.update({
-    name: playerProps.name,
-    playerId: playerProps.playerId,
-    score: playerProps.score,
-    lastChat: playerProps.lastChat,
-    playerStatus: playerProps.playerStatus,
-    fetchedStatus: playerProps.fetchedStatus,
+    ...playerProps,
   });
 }
 
@@ -133,24 +123,27 @@ export function sendSyncData({
 }) {
   if (!channel) return;
   // Broadcast sync payload on dedicated sync stream.
-  channel.publish("sync", {
+  const payload: SyncMessage = {
     type: "sync_data",
     requesterId,
     senderId,
     seq,
     sentAt: Date.now(),
     payload: syncData,
-  } satisfies SyncMessage);
+  };
+
+  channel.publish("sync", payload);
 }
 
 // send sync request to all players to fetch current question and timer
 export function sendSyncRequest(requesterId: string) {
   if (!channel) return;
   // Ask peers for their latest question/timer snapshot.
-  channel.publish("sync", {
+  const payload: SyncMessage = {
     type: "sync_request",
     requesterId,
-  } satisfies SyncMessage);
+  };
+  channel.publish("sync", payload);
 }
 
 // subscribe to sync data
