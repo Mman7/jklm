@@ -75,7 +75,7 @@ export default function Home() {
             <button
               className="btn bg-secondary btn-lg rounded-full border border-gray-300 font-semibold shadow-xs transition-all hover:scale-105 hover:shadow-xl"
               // Open dialog to enter room code.
-              onClick={() => openDialog(OpenDialogTypes.JoinDialogDialog)}
+              onClick={() => openDialog(OpenDialogTypes.JoinDialog)}
             >
               <Users className="text-primary mt-0.5 shrink-0" size={16} />
               Join Room
