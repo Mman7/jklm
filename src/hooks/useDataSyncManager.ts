@@ -17,6 +17,12 @@ import { useShowAnswerStore } from "../zustands/useShowAnswerStore";
 
 const BROADCAST_REQUESTER_ID = "all";
 
+function useLatest<T>(value: T) {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
+}
+
 export default function useDataSyncManager() {
   const timer = useGameStore((s) => s.timer);
   const playerId = useAuthStore((s) => s.playerId);
@@ -30,11 +36,11 @@ export default function useDataSyncManager() {
 
   // Keep latest values in refs so callbacks/subscriptions always read fresh state
   // without forcing re-subscription on every render.
-  const timerRef = useRef(timer);
-  const questionRef = useRef(currentQuestionHash);
-  const currentQuestionRef = useRef(currentQuestion);
+  const timerRef = useLatest(timer);
+  const questionRef = useLatest(currentQuestionHash);
+  const currentQuestionRef = useLatest(currentQuestion);
   const round = useGameStore((s) => s.round);
-  const roundRef = useRef(round);
+  const roundRef = useLatest(round);
   // If sync arrives before the full question object is loaded, cache end_time here
   // and apply it once matching question data is available.
   const pendingSyncedEndTimeRef = useRef<{
@@ -45,27 +51,7 @@ export default function useDataSyncManager() {
   const lastAppliedSyncSeqRef = useRef<Record<string, number>>({});
   // Prevent repeatedly applying the same targeted sync payload.
   const hasAppliedIncomingSyncRef = useRef(false);
-  const showAnswerRef = useRef(showAnswer);
-
-  useEffect(() => {
-    timerRef.current = timer;
-  }, [timer]);
-
-  useEffect(() => {
-    questionRef.current = currentQuestionHash;
-  }, [currentQuestionHash]);
-
-  useEffect(() => {
-    roundRef.current = round;
-  }, [round]);
-
-  useEffect(() => {
-    currentQuestionRef.current = currentQuestion;
-  }, [currentQuestion]);
-
-  useEffect(() => {
-    showAnswerRef.current = showAnswer;
-  }, [showAnswer]);
+  const showAnswerRef = useLatest(showAnswer);
 
   useEffect(() => {
     // New question means old sync guards are no longer valid.
@@ -95,6 +81,7 @@ export default function useDataSyncManager() {
       // Ignore negative/expired timer broadcasts unless answer phase is shown.
       if (!showAnswerRef.current && currentTimer <= 0) return;
 
+      //
       const syncData = {
         currentQuestionHash,
         timer: {
@@ -152,23 +139,38 @@ export default function useDataSyncManager() {
       if (typeof syncData.round === "number") {
         useGameStore.setState({ round: syncData.round });
       }
-      const incomingHash = syncData.currentQuestionHash.hash;
-      const localHash = questionRef.current?.hash;
-      const isSameQuestion = localHash === incomingHash;
-      const hasLocalQuestion = !!localHash;
-      const sourceKey = `${dataMessage.senderId}:${incomingHash}`;
-      const hasSequence = typeof dataMessage.seq === "number";
-      const incomingSeq = dataMessage.seq ?? 0;
-      const lastAppliedSeq = lastAppliedSyncSeqRef.current[sourceKey] ?? -1;
 
-      if (hasSequence && incomingSeq <= lastAppliedSeq) return;
+      const incoming = {
+        hash: syncData.currentQuestionHash.hash,
+        seq: dataMessage.seq ?? 0,
+        hasSequence: typeof dataMessage.seq === "number",
+      };
 
-      if (hasSequence) {
-        lastAppliedSyncSeqRef.current[sourceKey] = incomingSeq;
+      const local = {
+        hash: questionRef.current?.hash,
+      };
+
+      const syncComparison = {
+        isSameQuestion: local.hash === incoming.hash,
+        hasLocalQuestion: !!local.hash,
+        sourceKey: `${dataMessage.senderId}:${incoming.hash}`,
+      };
+
+      const lastAppliedSeq =
+        lastAppliedSyncSeqRef.current[syncComparison.sourceKey] ?? -1;
+
+      if (incoming.hasSequence && incoming.seq <= lastAppliedSeq) return;
+
+      if (incoming.hasSequence) {
+        lastAppliedSyncSeqRef.current[syncComparison.sourceKey] = incoming.seq;
       }
 
       // For targeted sync, apply once per same-question context.
-      if (isTargetedToMe && hasAppliedIncomingSyncRef.current && isSameQuestion)
+      if (
+        isTargetedToMe &&
+        hasAppliedIncomingSyncRef.current &&
+        syncComparison.isSameQuestion
+      )
         return;
 
       if (isTargetedToMe) {
@@ -179,14 +181,16 @@ export default function useDataSyncManager() {
       // the round is explicitly in answer phase.
       if (!syncData.isShowingAnswer && syncData.timer.totalMs <= 0) return;
 
-      if (hasLocalQuestion && !isSameQuestion) {
+      if (syncComparison.hasLocalQuestion && !syncComparison.isSameQuestion) {
         // Question changed locally; never carry answer-phase UI across hashes.
         setShowAnswer(false);
       } else {
         setShowAnswer(syncData.isShowingAnswer);
       }
 
-      setCurrentQuestionHash(syncData.currentQuestionHash);
+      if (!syncComparison.isSameQuestion) {
+        setCurrentQuestionHash(syncData.currentQuestionHash);
+      }
 
       const syncedEndTimeMs = Date.now() + Math.max(syncData.timer.totalMs, 0);
       const questionHash = syncData.currentQuestionHash.hash;
@@ -216,7 +220,6 @@ export default function useDataSyncManager() {
     return unsubscribe;
   }, [
     channel,
-    currentQuestion,
     mounted,
     playerId,
     sendSync,

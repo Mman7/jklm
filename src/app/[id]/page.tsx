@@ -178,7 +178,7 @@ export default function GamePage() {
         <ShowAnswer />
       ) : (
         <section className="flex-3">
-          <header className="border-base-content/10 bg-base-100 my-3 flex h-16 items-center justify-between gap-4 rounded-3xl border-b px-2">
+          <header className="border-base-content/10 bg-base-100 my-3 flex h-16 items-center justify-between gap-4 rounded-3xl border-b px-4">
             <section className="flex items-center gap-2">
               <button
                 className="btn btn-ghost btn-sm lg:hidden"
