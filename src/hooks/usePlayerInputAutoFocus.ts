@@ -37,9 +37,7 @@ export default function usePlayerInputAutoFocus({
       // Query selector finds the first interactive input element that is visible and enabled
       const inputEl = root?.querySelector<
         HTMLInputElement | HTMLTextAreaElement
-      >(
-        'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [contenteditable="true"]',
-      );
+      >("#player-input");
       inputEl?.focus();
     });
 
