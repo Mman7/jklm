@@ -4,7 +4,7 @@ export enum OpenDialogTypes {
   None = "None",
   GameSettingsDialog = "GameSettings",
   PlayerChatDialog = "PlayerChat",
-  JoinDialogDialog = "Join",
+  JoinDialog = "Join",
   NameDialog = "Name",
 }
 

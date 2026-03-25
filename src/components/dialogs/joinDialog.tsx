@@ -60,7 +60,7 @@ export default function JoinDialog() {
 
   return (
     <Dialog
-      open={dialogType === OpenDialogTypes.JoinDialogDialog}
+      open={dialogType === OpenDialogTypes.JoinDialog}
       onClose={closeModal}
     >
       <div className="space-y-4">
