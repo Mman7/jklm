@@ -48,7 +48,7 @@ export default function RoomCard({ room }: { room: Room }) {
       type="button"
       onClick={handleJoinRoom}
       // Clickable card with elevated visual hierarchy and richer hover effects.
-      className="group border-base-content/10 bg-base-100/70 hover:border-primary/50 hover:bg-base-100 min-w-2/12 cursor-pointer overflow-hidden rounded-2xl border p-5 text-left shadow-md backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group border-base-content/10 bg-base-100/70 hover:border-primary/50 hover:bg-base-100 min-w-2/12 cursor-pointer overflow-hidden rounded-2xl border p-4 text-left shadow-md backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="from-primary/10 to-secondary/10 pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
@@ -64,7 +64,7 @@ export default function RoomCard({ room }: { room: Room }) {
             <p className="text-base-content/70 text-xs">Ready to join</p>
           </div>
         </div>
-        <span className="badge badge-primary badge-outline ml-3 min-w-1">
+        <span className="badge badge-primary badge-outline ml-3 whitespace-nowrap">
           In-Game
         </span>
       </div>

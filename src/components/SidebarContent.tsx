@@ -1,7 +1,7 @@
 "use client";
 
 import { updateRoomSettings } from "@/src/library/client/client";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useGameStore } from "../zustands/useGameStore";
 import { useAuthStore } from "../zustands/useAuthStore";
 import { useRoomStore } from "../zustands/useRoomStore";
@@ -9,7 +9,15 @@ import { useRoomStore } from "../zustands/useRoomStore";
 const DEFAULT_TARGET_SCORE = 100;
 const DEFAULT_QUESTION_DURATION_SECONDS = 20;
 
-export default function SidebarContent({ className }: { className?: string }) {
+type SidebarContentProps = {
+  className?: string;
+  headerAction?: ReactNode;
+};
+
+export default function SidebarContent({
+  className,
+  headerAction,
+}: SidebarContentProps) {
   const gameReady = useGameStore((s) => s.gameReady);
   const playerId = useAuthStore((s) => s.playerId);
   const room = useRoomStore((s) => s.room);
@@ -74,7 +82,10 @@ export default function SidebarContent({ className }: { className?: string }) {
       <ul
         className={`${className} menu border-base-content/10 bg-base-100/90 min-h-full w-80 border-r p-4 backdrop-blur-xl`}
       >
-        <li className="menu-title pointer-events-none">
+        <li className="menu-title flex items-center gap-2">
+          {headerAction ? (
+            <div className="ml-auto flex items-center">{headerAction}</div>
+          ) : null}
           <span>Game Rules</span>
         </li>
         <li className="rounded-lg p-2">

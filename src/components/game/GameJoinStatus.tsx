@@ -24,7 +24,7 @@ export default function GameJoinStatus({
   }
 
   return (
-    <h1 className="text-sm font-medium">
+    <h1 className="hidden text-sm font-medium md:block">
       {isGameReady ? "Game started" : "Waiting for 2 players to start"}
     </h1>
   );

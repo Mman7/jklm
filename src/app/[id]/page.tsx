@@ -178,7 +178,7 @@ export default function GamePage() {
         <ShowAnswer />
       ) : (
         <section className="flex-3">
-          <header className="border-base-content/10 bg-base-100 my-3 flex h-16 items-center justify-between gap-4 rounded-3xl border-b px-4">
+          <header className="border-base-content/10 bg-base-100 my-3 flex h-16 items-center justify-between gap-4 rounded-3xl border-b px-2">
             <section className="flex items-center gap-2">
               <button
                 className="btn btn-ghost btn-sm lg:hidden"
@@ -199,7 +199,7 @@ export default function GamePage() {
               </div>
             </section>
 
-            <section className="flex flex-1 flex-col items-center gap-1">
+            <section className="flex flex-1 flex-col items-center">
               <progress
                 className="progress progress-primary h-1.5 w-full max-w-55"
                 value={timerProgressPercent}
@@ -244,6 +244,7 @@ export default function GamePage() {
             ) : (
               <>
                 <ChallengeDisplayer />
+
                 {isBlockedForCurrentQuestion ? (
                   <div className="px-4 py-2 text-center text-sm text-gray-700">
                     You joined mid-question. You can answer starting from the
